@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -18,10 +19,15 @@ import com.mobilesolutionworks.android.http.WorksHttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by yunarta on 31/7/14.
@@ -34,6 +40,8 @@ public abstract class WorksHttpCacheService extends IntentService
 
     protected Gson mGson;
 
+    protected ExecutorService mExecutors;
+
     public WorksHttpCacheService()
     {
         super("cache-service");
@@ -44,6 +52,7 @@ public abstract class WorksHttpCacheService extends IntentService
     {
         super.onCreate();
         mQueues = new HashSet<Uri>();
+        mExecutors = Executors.newCachedThreadPool();
 
         Bundle metaData;
         try
@@ -74,16 +83,22 @@ public abstract class WorksHttpCacheService extends IntentService
         }
     }
 
+    protected abstract String createUrl(Uri data, String[] args);
+
     protected abstract int resolveUri(Uri data);
 
-    protected abstract Uri createUri(String data);
-
-    protected abstract String buildUri(Uri data);
+    protected abstract Uri createUri(String path);
 
     protected void refreshData(Intent intent)
     {
         Uri data = Uri.parse(intent.getData().toString());
-        int match = resolveUri(data);
+
+        Log.d("WorksHttpCache", "going to fetch for " + data);
+        if (resolveUri(data) == -1)
+        {
+            return;
+        }
+
         if (mQueues.contains(data))
         {
             return;
@@ -91,9 +106,15 @@ public abstract class WorksHttpCacheService extends IntentService
 
         mQueues.add(data);
 
+        String[] args = intent.getStringArrayExtra("args");
+        if (args == null)
+        {
+            args = new String[0];
+        }
+
         WorksHttpRequest config = new WorksHttpRequest();
         config.method = WorksHttpRequest.Method.POST;
-        config.url = buildUri(data);
+        config.url = createUrl(data, args);
 
         String params = intent.getStringExtra("params");
         if (!TextUtils.isEmpty(params))
@@ -118,8 +139,42 @@ public abstract class WorksHttpCacheService extends IntentService
         }
         time *= 1000;
 
-        QueryAndSaveTask task = new QueryAndSaveTask(this, data.getEncodedPath(), intent.getData(), time);
-        task.execute(config);
+        String timeout = data.getQueryParameter("timeout");
+        int lTimeout = 10;
+        if (!TextUtils.isEmpty(timeout))
+        {
+            lTimeout = Integer.parseInt(timeout);
+            if (lTimeout == 0)
+            {
+                lTimeout = 10;
+            }
+
+        }
+        lTimeout *= 1000;
+
+        Set<String> names = data.getQueryParameterNames();
+
+        Uri.Builder builder = data.buildUpon();
+        builder.clearQuery();
+        for (String name : names)
+        {
+            if ("cache".equals(name) || "timeout".equals(name))
+            {
+                continue;
+            }
+
+            builder.appendQueryParameter(name, data.getQueryParameter(name));
+        }
+
+        Uri build = builder.build();
+        String path = build.getEncodedPath();
+        if (build.getEncodedQuery() != null)
+        {
+            path += "?" + build.getEncodedQuery();
+        }
+
+        QueryAndSaveTask task = new QueryAndSaveTask(this, path, intent.getData(), time, lTimeout);
+        task.executeOnExecutor(mExecutors, config);
     }
 
     private class QueryAndSaveTask extends WorksHttpAsyncTask<String>
@@ -130,19 +185,28 @@ public abstract class WorksHttpCacheService extends IntentService
 
         private Uri mContentUri;
 
-        @Override
-        public void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest)
-        {
-            super.onPreExecute(request, httpRequest);
-        }
+        private int mTimeout;
 
-        public QueryAndSaveTask(Context context, String path, Uri uri, long time)
+        public QueryAndSaveTask(Context context, String path, Uri uri, long time, int timeout)
         {
             super(context);
 
             mPath = path;
             mTime = time;
             mContentUri = uri;
+            mTimeout = timeout;
+        }
+
+        @Override
+        public void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest)
+        {
+            super.onPreExecute(request, httpRequest);
+
+            HttpParams params = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(params, mTimeout);
+            HttpConnectionParams.setSoTimeout(params, mTimeout);
+
+//            httpRequest.setParams(params);
         }
 
         @Override
@@ -155,22 +219,17 @@ public abstract class WorksHttpCacheService extends IntentService
         @Override
         public void onLoadFinished(WorksHttpRequest request, int statusCode, String data)
         {
-//            GsonInstance instance = GsonInstance.getInstance();
-//            RESTResponse response = instance.parse(data, RESTResponse.class);
-//            if (response.error.value() == 0)
-            {
-                ContentValues values = new ContentValues();
-                values.put("uri", mPath);
-                values.put("json", data);
-                values.put("time", System.currentTimeMillis() + mTime);
-                values.put("error", CacheErrorCode.OK.value());
+            ContentValues values = new ContentValues();
+            values.put("uri", mPath);
+            values.put("data", data);
+            values.put("time", System.currentTimeMillis() + mTime);
+            values.put("error", CacheErrorCode.OK.value());
 
-                Uri uri = createUri(mPath);
-                mQueues.remove(mContentUri);
+            Uri uri = createUri(mPath);
+            mQueues.remove(mContentUri);
 
-                getContentResolver().insert(uri, values);
-                getContentResolver().notifyChange(mContentUri, null);
-            }
+            getContentResolver().insert(uri, values);
+            getContentResolver().notifyChange(mContentUri, null);
         }
 
         @Override
@@ -181,7 +240,7 @@ public abstract class WorksHttpCacheService extends IntentService
             ContentValues values = new ContentValues();
             values.put("uri", mPath);
             values.put("time", System.currentTimeMillis() + mTime);
-            values.put("error", CacheErrorCode.GENERIC_PROCESS_ERROR.value());
+            values.put("error", CacheErrorCode.createException(exception).value());
 
             Uri uri = createUri(mPath);
             mQueues.remove(mContentUri);
@@ -198,8 +257,6 @@ public abstract class WorksHttpCacheService extends IntentService
             ContentValues values = new ContentValues();
             values.put("uri", mPath);
             values.put("time", System.currentTimeMillis() + mTime);
-
-
             values.put("error", CacheErrorCode.createNet(statusCode).value());
 
             Uri uri = createUri(mPath);

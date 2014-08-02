@@ -10,22 +10,20 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+
+import java.util.Set;
 
 /**
  * Created by yunarta on 31/7/14.
  */
 public class WorksHttpCacheContentProvider extends ContentProvider
 {
+    protected static String TABLE_NAME = "cache";
+
     protected SQLiteDatabase mDatabase;
 
-    protected String mTableName;
-
     protected String mGetDataIntent;
-
-    public WorksHttpCacheContentProvider(String tableName)
-    {
-        mTableName = tableName;
-    }
 
     @Override
     public boolean onCreate()
@@ -44,15 +42,15 @@ public class WorksHttpCacheContentProvider extends ContentProvider
 
         mGetDataIntent = metaData.getString("getDataIntent");
 
-        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "cache", null, 4)
+        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "cache", null, 6)
         {
 
             @Override
             public void onCreate(SQLiteDatabase db)
             {
-                db.execSQL("CREATE TABLE IF NOT EXISTS " + mTableName + " (" +
+                db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         "uri TEXT," +
-                        "json TEXT," +
+                        "data TEXT," +
                         "time INTEGER," +
                         "error INTEGER DEFAULT 0," +
                         "PRIMARY KEY (uri) ON CONFLICT REPLACE" +
@@ -62,10 +60,10 @@ public class WorksHttpCacheContentProvider extends ContentProvider
             @Override
             public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
             {
-                db.execSQL("DROP TABLE IF EXISTS " + mTableName);
-                db.execSQL("CREATE TABLE IF NOT EXISTS " + mTableName + " (" +
+                db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
+                db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         "uri TEXT," +
-                        "json TEXT," +
+                        "data TEXT," +
                         "time INTEGER," +
                         "error INTEGER DEFAULT 0," +
                         "PRIMARY KEY (uri) ON CONFLICT REPLACE" +
@@ -79,15 +77,38 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     @Override
     public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder)
     {
-        String timeLimit = String.valueOf(System.currentTimeMillis());
-        String segment = uri.getEncodedPath();
+        Log.d("WorksHttpCache", "query " + uri);
 
-        Cursor cursor = mDatabase.query(mTableName, columns, "uri = ? AND time > ? AND error != -1", new String[]{segment, timeLimit}, sortOrder, null, null);
+        String timeLimit = String.valueOf(System.currentTimeMillis());
+        // String segment = uri.getEncodedPath();
+
+        Set<String> names = uri.getQueryParameterNames();
+        Uri.Builder builder = uri.buildUpon();
+        builder.clearQuery();
+        for (String name : names)
+        {
+            if ("cache".equals(name) || "timeout".equals(name))
+            {
+                continue;
+            }
+
+            builder.appendQueryParameter(name, uri.getQueryParameter(name));
+        }
+
+        Uri build = builder.build();
+        String path = build.getEncodedPath();
+        if (build.getEncodedQuery() != null)
+        {
+            path += "?" + build.getEncodedQuery();
+        }
+
+        Cursor cursor = mDatabase.query(TABLE_NAME, columns, "uri = ? AND time > ? AND error != -1", new String[]{path, timeLimit}, sortOrder, null, null);
         if (cursor != null && !cursor.moveToFirst())
         {
             Intent service = new Intent(mGetDataIntent);
             service.setData(uri);
             service.putExtra("params", selection);
+            service.putExtra("args", selectionArgs);
 
             getContext().startService(service);
         }
@@ -104,7 +125,7 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     @Override
     public Uri insert(Uri uri, ContentValues values)
     {
-        mDatabase.insert(mTableName, null, values);
+        mDatabase.insert(TABLE_NAME, null, values);
         return null;
     }
 
@@ -114,15 +135,15 @@ public class WorksHttpCacheContentProvider extends ContentProvider
         String segment = uri.getEncodedPath();
         if ("all".equals(segment))
         {
-            return mDatabase.delete(mTableName, null, null);
+            return mDatabase.delete(TABLE_NAME, null, null);
         }
         else if (selectionArgs != null)
         {
-            return mDatabase.delete(mTableName, "uri LIKE ?", selectionArgs);
+            return mDatabase.delete(TABLE_NAME, "uri LIKE ?", selectionArgs);
         }
         else
         {
-            return mDatabase.delete(mTableName, "uri = ?", new String[]{segment});
+            return mDatabase.delete(TABLE_NAME, "uri = ?", new String[]{segment});
         }
     }
 
@@ -130,6 +151,17 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
     {
         String segment = uri.getEncodedPath();
-        return mDatabase.update(mTableName, values, "uri = ?", new String[]{segment});
+        if (values != null)
+        {
+            return mDatabase.update(TABLE_NAME, values, "uri = ?", new String[]{segment});
+        }
+        else
+        {
+            values = new ContentValues();
+            values.put("error", CacheErrorCode.DELETED.value());
+
+            return mDatabase.update(TABLE_NAME, values, "uri = ? AND error >= 32768", new String[]{segment});
+
+        }
     }
 }
