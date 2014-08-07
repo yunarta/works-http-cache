@@ -13,9 +13,9 @@ import java.util.Map;
 public enum CacheErrorCode
 {
     UNKNOWN(0xffffffff),
-    TIMEOUT_EXCEPTION(0x8000 | 21),
-    IO_EXCEPTION(0x8000 | 20),
-    SECURITY_EXCEPTION(0x8000 | 10),
+    TIMEOUT_EXCEPTION(0x8000 | 0x15),
+    IO_EXCEPTION(0x8000 | 0x14),
+    SECURITY_EXCEPTION(0x8000 | 0x0a),
     GENERIC_PROCESS_ERROR(0x8000),
 
     NET_HTTP_NOT_FOUND(0x4000 | 404),
