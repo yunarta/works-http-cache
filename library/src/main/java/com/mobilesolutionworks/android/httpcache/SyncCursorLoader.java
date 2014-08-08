@@ -1,9 +1,10 @@
 package com.mobilesolutionworks.android.httpcache;
 
+
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.content.Loader;
 
 /**
  * Created by yunarta on 31/7/14.
