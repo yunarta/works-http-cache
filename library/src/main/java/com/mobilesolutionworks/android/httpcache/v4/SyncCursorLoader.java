@@ -1,10 +1,10 @@
-package com.mobilesolutionworks.android.httpcache;
+package com.mobilesolutionworks.android.httpcache.v4;
 
 
 import android.content.Context;
-import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
+import android.support.v4.content.Loader;
 
 /**
  * Created by yunarta on 31/7/14.
@@ -66,7 +66,7 @@ public class SyncCursorLoader extends Loader<Cursor>
 
     /**
      * Creates an empty unspecified CursorLoader.  You must follow this with
-     * calls to {@link #setUri(Uri)}, {@link #setSelection(String)}, etc
+     * calls to {@link #setUri(android.net.Uri)}, {@link #setSelection(String)}, etc
      * to specify the query to perform.
      */
     public SyncCursorLoader(Context context)
@@ -77,7 +77,7 @@ public class SyncCursorLoader extends Loader<Cursor>
 
     /**
      * Creates a fully-specified CursorLoader.  See
-     * {@link android.content.ContentResolver#query(Uri, String[], String, String[], String)
+     * {@link android.content.ContentResolver#query(android.net.Uri, String[], String, String[], String)
      * ContentResolver.query()} for documentation on the meaning of the
      * parameters.  These will be passed as-is to that call.
      */

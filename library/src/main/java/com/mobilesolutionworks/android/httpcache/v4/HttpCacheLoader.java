@@ -1,16 +1,17 @@
-package com.mobilesolutionworks.android.httpcache;
+package com.mobilesolutionworks.android.httpcache.v4;
 
 
-import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Loader;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.text.TextUtils;
+import com.mobilesolutionworks.android.httpcache.CacheErrorCode;
 
 /**
  * Created by yunarta on 31/7/14.
