@@ -122,7 +122,10 @@ public abstract class WorksHttpCacheService extends IntentService
             JsonObject parse = mGson.fromJson(params, JsonObject.class);
             for (Map.Entry<String, JsonElement> entry : parse.entrySet())
             {
-                config.setPostParam(entry.getKey(), entry.getValue().getAsString());
+                String value = entry.getValue().getAsString();
+                if (!TextUtils.isEmpty(value)) {
+                    config.setPostParam(entry.getKey(), value);
+                }
             }
         }
 
