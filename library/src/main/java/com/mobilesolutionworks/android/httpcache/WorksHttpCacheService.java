@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014-present Yunarta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mobilesolutionworks.android.httpcache;
 
 import android.app.IntentService;
@@ -32,8 +48,8 @@ import java.util.concurrent.Executors;
 /**
  * Created by yunarta on 31/7/14.
  */
-public abstract class WorksHttpCacheService extends IntentService
-{
+public abstract class WorksHttpCacheService extends IntentService {
+
     protected Set<Uri> mQueues;
 
     protected String mGetDataIntent;
@@ -42,26 +58,21 @@ public abstract class WorksHttpCacheService extends IntentService
 
     protected ExecutorService mExecutors;
 
-    public WorksHttpCacheService()
-    {
+    public WorksHttpCacheService() {
         super("cache-service");
     }
 
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         super.onCreate();
         mQueues = new HashSet<Uri>();
         mExecutors = Executors.newCachedThreadPool();
 
         Bundle metaData;
-        try
-        {
+        try {
             ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
             metaData = ai.metaData;
-        }
-        catch (PackageManager.NameNotFoundException e)
-        {
+        } catch (PackageManager.NameNotFoundException e) {
             metaData = new Bundle();
             metaData.putString("getDataIntent", "GET_DATA_INTENT");
         }
@@ -71,13 +82,10 @@ public abstract class WorksHttpCacheService extends IntentService
     }
 
     @Override
-    protected void onHandleIntent(Intent intent)
-    {
-        if (intent != null)
-        {
+    protected void onHandleIntent(Intent intent) {
+        if (intent != null) {
             String action = intent.getAction();
-            if (mGetDataIntent.equals(action))
-            {
+            if (mGetDataIntent.equals(action)) {
                 refreshData(intent);
             }
         }
@@ -89,26 +97,22 @@ public abstract class WorksHttpCacheService extends IntentService
 
     protected abstract Uri createUri(String path);
 
-    protected void refreshData(Intent intent)
-    {
+    protected void refreshData(Intent intent) {
         Uri data = Uri.parse(intent.getData().toString());
 
         Log.d("WorksHttpCache", "going to fetch for " + data);
-        if (resolveUri(data) == -1)
-        {
+        if (resolveUri(data) == -1) {
             return;
         }
 
-        if (mQueues.contains(data))
-        {
+        if (mQueues.contains(data)) {
             return;
         }
 
         mQueues.add(data);
 
         String[] args = intent.getStringArrayExtra("args");
-        if (args == null)
-        {
+        if (args == null) {
             args = new String[0];
         }
 
@@ -117,11 +121,9 @@ public abstract class WorksHttpCacheService extends IntentService
         config.url = createUrl(data, args);
 
         String params = intent.getStringExtra("params");
-        if (!TextUtils.isEmpty(params))
-        {
+        if (!TextUtils.isEmpty(params)) {
             JsonObject parse = mGson.fromJson(params, JsonObject.class);
-            for (Map.Entry<String, JsonElement> entry : parse.entrySet())
-            {
+            for (Map.Entry<String, JsonElement> entry : parse.entrySet()) {
                 String value = entry.getValue().getAsString();
                 if (!TextUtils.isEmpty(value)) {
                     config.setPostParam(entry.getKey(), value);
@@ -131,11 +133,9 @@ public abstract class WorksHttpCacheService extends IntentService
 
         String cache = data.getQueryParameter("cache");
         long time = 2 * 60;
-        if (!TextUtils.isEmpty(cache))
-        {
+        if (!TextUtils.isEmpty(cache)) {
             time = Long.parseLong(cache);
-            if (time == 0)
-            {
+            if (time == 0) {
                 time = 3 * 60;
             }
 
@@ -144,11 +144,9 @@ public abstract class WorksHttpCacheService extends IntentService
 
         String timeout = data.getQueryParameter("timeout");
         int lTimeout = 10;
-        if (!TextUtils.isEmpty(timeout))
-        {
+        if (!TextUtils.isEmpty(timeout)) {
             lTimeout = Integer.parseInt(timeout);
-            if (lTimeout == 0)
-            {
+            if (lTimeout == 0) {
                 lTimeout = 10;
             }
 
@@ -159,10 +157,8 @@ public abstract class WorksHttpCacheService extends IntentService
 
         Uri.Builder builder = data.buildUpon();
         builder.clearQuery();
-        for (String name : names)
-        {
-            if ("cache".equals(name) || "timeout".equals(name))
-            {
+        for (String name : names) {
+            if ("cache".equals(name) || "timeout".equals(name)) {
                 continue;
             }
 
@@ -171,8 +167,7 @@ public abstract class WorksHttpCacheService extends IntentService
 
         Uri build = builder.build();
         String path = build.getEncodedPath();
-        if (build.getEncodedQuery() != null)
-        {
+        if (build.getEncodedQuery() != null) {
             path += "?" + build.getEncodedQuery();
         }
 
@@ -180,8 +175,8 @@ public abstract class WorksHttpCacheService extends IntentService
         task.executeOnExecutor(mExecutors, config);
     }
 
-    private class QueryAndSaveTask extends WorksHttpAsyncTask<String>
-    {
+    private class QueryAndSaveTask extends WorksHttpAsyncTask<String> {
+
         private String mPath;
 
         private final long mTime;
@@ -190,8 +185,7 @@ public abstract class WorksHttpCacheService extends IntentService
 
         private int mTimeout;
 
-        public QueryAndSaveTask(Context context, String path, Uri uri, long time, int timeout)
-        {
+        public QueryAndSaveTask(Context context, String path, Uri uri, long time, int timeout) {
             super(context);
 
             mPath = path;
@@ -201,8 +195,7 @@ public abstract class WorksHttpCacheService extends IntentService
         }
 
         @Override
-        public void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest)
-        {
+        public void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest) {
             super.onPreExecute(request, httpRequest);
 
             HttpParams params = new BasicHttpParams();
@@ -213,15 +206,13 @@ public abstract class WorksHttpCacheService extends IntentService
         }
 
         @Override
-        public boolean onValidateResponse(WorksHttpRequest request, HttpResponse httpResponse)
-        {
+        public boolean onValidateResponse(WorksHttpRequest request, HttpResponse httpResponse) {
             StatusLine statusLine = httpResponse.getStatusLine();
             return (statusLine.getStatusCode() >= 200) && (statusLine.getStatusCode() < 300);
         }
 
         @Override
-        public void onLoadFinished(WorksHttpRequest request, int statusCode, String data)
-        {
+        public void onLoadFinished(WorksHttpRequest request, int statusCode, String data) {
             ContentValues values = new ContentValues();
             values.put("uri", mPath);
             values.put("data", data);
@@ -236,8 +227,7 @@ public abstract class WorksHttpCacheService extends IntentService
         }
 
         @Override
-        public void onProcessError(WorksHttpRequest request, Throwable exception)
-        {
+        public void onProcessError(WorksHttpRequest request, Throwable exception) {
             super.onProcessError(request, exception);
 
             ContentValues values = new ContentValues();
@@ -253,8 +243,7 @@ public abstract class WorksHttpCacheService extends IntentService
         }
 
         @Override
-        public void onNetError(WorksHttpRequest request, int statusCode)
-        {
+        public void onNetError(WorksHttpRequest request, int statusCode) {
             super.onNetError(request, statusCode);
 
             ContentValues values = new ContentValues();
@@ -270,8 +259,7 @@ public abstract class WorksHttpCacheService extends IntentService
         }
 
         @Override
-        public void onCancelled(WorksHttpRequest request)
-        {
+        public void onCancelled(WorksHttpRequest request) {
             super.onCancelled(request);
 
             ContentValues values = new ContentValues();

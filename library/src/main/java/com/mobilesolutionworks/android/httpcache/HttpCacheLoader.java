@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014-present Yunarta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mobilesolutionworks.android.httpcache;
 
 
@@ -15,8 +31,8 @@ import android.text.TextUtils;
 /**
  * Created by yunarta on 31/7/14.
  */
-public abstract class HttpCacheLoader extends ContentObserver implements LoaderManager.LoaderCallbacks<Cursor>
-{
+public abstract class HttpCacheLoader extends ContentObserver implements LoaderManager.LoaderCallbacks<Cursor> {
+
     protected Context mContext;
 
     protected Cursor mCursor;
@@ -27,8 +43,7 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
 
     boolean mRegistered;
 
-    public HttpCacheLoader(Context context, Uri uri)
-    {
+    public HttpCacheLoader(Context context, Uri uri) {
         super(new Handler());
 
         mContext = context;
@@ -36,8 +51,7 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
         mParams = "{}";
     }
 
-    public HttpCacheLoader(Context context, Uri uri, String params)
-    {
+    public HttpCacheLoader(Context context, Uri uri, String params) {
         super(new Handler());
 
         mContext = context;
@@ -46,23 +60,18 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     }
 
     @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args)
-    {
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         String cache = mUri.getQueryParameter("cache");
 
-        if (!TextUtils.isEmpty(cache))
-        {
-            if ("0".equals(cache))
-            {
+        if (!TextUtils.isEmpty(cache)) {
+            if ("0".equals(cache)) {
                 ContentValues values = new ContentValues();
                 values.put("error", CacheErrorCode.DELETED.value());
 
                 Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
                 mContext.getContentResolver().update(mUriPathOnly, values, null, null);
 //                mContext.getContentResolver().delete(mUriPathOnly, null, null);
-            }
-            else
-            {
+            } else {
                 ContentValues values = new ContentValues();
 
                 Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
@@ -74,32 +83,24 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor)
-    {
-        if (mCursor != null)
-        {
-            if (mRegistered)
-            {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        if (mCursor != null) {
+            if (mRegistered) {
                 mCursor.unregisterContentObserver(this);
                 mRegistered = false;
             }
         }
 
         boolean deliver = false;
-        if (mCursor == null && cursor != null)
-        {
+        if (mCursor == null && cursor != null) {
             deliver = true;
         }
 
         mCursor = cursor;
-        if (mCursor == null)
-        {
+        if (mCursor == null) {
             nodata();
-        }
-        else
-        {
-            if (!mRegistered)
-            {
+        } else {
+            if (!mRegistered) {
                 mCursor.registerContentObserver(this);
                 mRegistered = true;
             }
@@ -107,31 +108,24 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
             Uri notifyUri = mUri.buildUpon().clearQuery().build();
             mCursor.setNotificationUri(mContext.getContentResolver(), notifyUri);
 
-            if (mCursor.moveToFirst())
-            {
+            if (mCursor.moveToFirst()) {
                 String data = mCursor.getString(mCursor.getColumnIndex("data"));
                 long time = mCursor.getLong(mCursor.getColumnIndex("time"));
 
                 int error = mCursor.getInt(mCursor.getColumnIndex("error"));
-                if (deliver)
-                {
+                if (deliver) {
                     beforeUse(error, data, time, false);
                 }
-            }
-            else
-            {
+            } else {
                 nodata();
             }
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader)
-    {
-        if (mCursor != null)
-        {
-            if (mRegistered)
-            {
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if (mCursor != null) {
+            if (mRegistered) {
                 mCursor.unregisterContentObserver(this);
                 mRegistered = false;
             }
@@ -139,12 +133,10 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     }
 
     @Override
-    public void onChange(boolean selfChange)
-    {
+    public void onChange(boolean selfChange) {
         super.onChange(selfChange);
         mCursor.requery();
-        if (!mCursor.isClosed() && mCursor.moveToFirst())
-        {
+        if (!mCursor.isClosed() && mCursor.moveToFirst()) {
             String data = mCursor.getString(mCursor.getColumnIndex("data"));
             long time = mCursor.getLong(mCursor.getColumnIndex("time"));
             int error = mCursor.getInt(mCursor.getColumnIndex("error"));
@@ -153,42 +145,32 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
         }
     }
 
-    protected void stopMonitor()
-    {
-        if (mRegistered)
-        {
+    protected void stopMonitor() {
+        if (mRegistered) {
             mCursor.unregisterContentObserver(this);
             mRegistered = false;
         }
     }
 
-    private void beforeUse(int errorCode, String data, long time, boolean requery)
-    {
-        try
-        {
+    private void beforeUse(int errorCode, String data, long time, boolean requery) {
+        try {
             CacheErrorCode generic = CacheErrorCode.getGeneric(errorCode);
-            switch (generic)
-            {
-                case GENERIC_NET_ERROR:
-                {
-                    if (netf(errorCode, data))
-                    {
+            switch (generic) {
+                case GENERIC_NET_ERROR: {
+                    if (netf(errorCode, data)) {
                         return;
                     }
                     break;
                 }
 
-                case GENERIC_PROCESS_ERROR:
-                {
-                    if (pf(errorCode, data))
-                    {
+                case GENERIC_PROCESS_ERROR: {
+                    if (pf(errorCode, data)) {
                         return;
                     }
                     break;
                 }
 
-                default:
-                {
+                default: {
                     use(errorCode, data, time);
                     return;
                 }
@@ -204,20 +186,16 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
 //                Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
 //                mContext.getContentResolver().update(mUriPathOnly, values, null, null);
 //            }
-        }
-        finally
-        {
+        } finally {
             completed();
         }
     }
 
-    protected boolean pf(int error, String data)
-    {
+    protected boolean pf(int error, String data) {
         return false;
     }
 
-    protected boolean netf(int error, String data)
-    {
+    protected boolean netf(int error, String data) {
         return false;
     }
 
@@ -227,8 +205,7 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
 
     protected abstract void error(int error, String data);
 
-    protected void completed()
-    {
+    protected void completed() {
 
     }
 }

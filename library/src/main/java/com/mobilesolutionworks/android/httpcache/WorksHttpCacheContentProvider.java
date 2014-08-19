@@ -1,3 +1,19 @@
+/*
+ * Copyright 2014-present Yunarta
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.mobilesolutionworks.android.httpcache;
 
 import android.content.ContentProvider;
@@ -17,8 +33,8 @@ import java.util.Set;
 /**
  * Created by yunarta on 31/7/14.
  */
-public class WorksHttpCacheContentProvider extends ContentProvider
-{
+public class WorksHttpCacheContentProvider extends ContentProvider {
+
     protected static String TABLE_NAME = "cache";
 
     protected SQLiteDatabase mDatabase;
@@ -26,28 +42,22 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     protected String mGetDataIntent;
 
     @Override
-    public boolean onCreate()
-    {
+    public boolean onCreate() {
         Bundle metaData;
-        try
-        {
+        try {
             ApplicationInfo ai = getContext().getPackageManager().getApplicationInfo(getContext().getPackageName(), PackageManager.GET_META_DATA);
             metaData = ai.metaData;
-        }
-        catch (PackageManager.NameNotFoundException e)
-        {
+        } catch (PackageManager.NameNotFoundException e) {
             metaData = new Bundle();
             metaData.putString("getDataIntent", "GET_DATA_INTENT");
         }
 
         mGetDataIntent = metaData.getString("getDataIntent");
 
-        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "cache", null, 6)
-        {
+        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "cache", null, 6) {
 
             @Override
-            public void onCreate(SQLiteDatabase db)
-            {
+            public void onCreate(SQLiteDatabase db) {
                 db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         "uri TEXT," +
                         "data TEXT," +
@@ -58,8 +68,7 @@ public class WorksHttpCacheContentProvider extends ContentProvider
             }
 
             @Override
-            public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion)
-            {
+            public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_NAME);
                 db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_NAME + " (" +
                         "uri TEXT," +
@@ -75,8 +84,7 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     }
 
     @Override
-    public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder)
-    {
+    public Cursor query(Uri uri, String[] columns, String selection, String[] selectionArgs, String sortOrder) {
         Log.d("WorksHttpCache", "query " + uri);
 
         String timeLimit = String.valueOf(System.currentTimeMillis());
@@ -85,10 +93,8 @@ public class WorksHttpCacheContentProvider extends ContentProvider
         Set<String> names = uri.getQueryParameterNames();
         Uri.Builder builder = uri.buildUpon();
         builder.clearQuery();
-        for (String name : names)
-        {
-            if ("cache".equals(name) || "timeout".equals(name))
-            {
+        for (String name : names) {
+            if ("cache".equals(name) || "timeout".equals(name)) {
                 continue;
             }
 
@@ -97,14 +103,12 @@ public class WorksHttpCacheContentProvider extends ContentProvider
 
         Uri build = builder.build();
         String path = build.getEncodedPath();
-        if (build.getEncodedQuery() != null)
-        {
+        if (build.getEncodedQuery() != null) {
             path += "?" + build.getEncodedQuery();
         }
 
         Cursor cursor = mDatabase.query(TABLE_NAME, columns, "uri = ? AND time > ? AND error != -1", new String[]{path, timeLimit}, sortOrder, null, null);
-        if (cursor != null && !cursor.moveToFirst())
-        {
+        if (cursor != null && !cursor.moveToFirst()) {
             Intent service = new Intent(mGetDataIntent);
             service.setData(uri);
             service.putExtra("params", selection);
@@ -117,46 +121,34 @@ public class WorksHttpCacheContentProvider extends ContentProvider
     }
 
     @Override
-    public String getType(Uri uri)
-    {
+    public String getType(Uri uri) {
         return null;
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values)
-    {
+    public Uri insert(Uri uri, ContentValues values) {
         mDatabase.insert(TABLE_NAME, null, values);
         return null;
     }
 
     @Override
-    public int delete(Uri uri, String selection, String[] selectionArgs)
-    {
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
         String segment = uri.getEncodedPath();
-        if ("all".equals(segment))
-        {
+        if ("all".equals(segment)) {
             return mDatabase.delete(TABLE_NAME, null, null);
-        }
-        else if (selectionArgs != null)
-        {
+        } else if (selectionArgs != null) {
             return mDatabase.delete(TABLE_NAME, "uri LIKE ?", selectionArgs);
-        }
-        else
-        {
+        } else {
             return mDatabase.delete(TABLE_NAME, "uri = ?", new String[]{segment});
         }
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs)
-    {
+    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         String segment = uri.getEncodedPath();
-        if (values != null)
-        {
+        if (values != null) {
             return mDatabase.update(TABLE_NAME, values, "uri = ?", new String[]{segment});
-        }
-        else
-        {
+        } else {
             values = new ContentValues();
             values.put("error", CacheErrorCode.DELETED.value());
 
