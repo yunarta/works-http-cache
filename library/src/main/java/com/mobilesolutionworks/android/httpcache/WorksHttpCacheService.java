@@ -135,11 +135,11 @@ public abstract class WorksHttpCacheService extends IntentService {
         }
 
         String cache = data.getQueryParameter("cache");
-        long time = 2 * 60;
+        long time = 60;
         if (!TextUtils.isEmpty(cache)) {
             time = Long.parseLong(cache);
             if (time == 0) {
-                time = 3 * 60;
+                time = 60;
             }
 
         }

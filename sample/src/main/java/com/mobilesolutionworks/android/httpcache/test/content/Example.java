@@ -31,8 +31,8 @@ public class Example {
 
     public enum Resource {
         UNKNOWN("", ""),
-        EXAMPLE1("example1/", "https://raw.githubusercontent.com/yunarta/works-http-cache/master/sample/data/example1"),
-        EXAMPLE2("example2/", "https://raw.githubusercontent.com/yunarta/works-http-cache/master/sample/data/example2"),;
+        EXAMPLE1("/example1/", "https://raw.githubusercontent.com/yunarta/works-http-cache/master/sample/data/example1"),
+        EXAMPLE2("/example2/", "https://raw.githubusercontent.com/yunarta/works-http-cache/master/sample/data/example2"),;
 
         public final String uri;
 
@@ -66,6 +66,6 @@ public class Example {
     }
 
     public static Uri create(String path) {
-        return Uri.parse("content://" + AUTHORITY + "/" + path);
+        return Uri.parse("content://" + AUTHORITY + path);
     }
 }

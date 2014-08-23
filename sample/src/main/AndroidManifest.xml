@@ -6,7 +6,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <application android:label="Works Http Cache Test">
+    <application
+        android:label="Http Cache Test"
+        android:icon="@drawable/ic_launcher"
+        android:theme="@style/ThemeCompat">
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

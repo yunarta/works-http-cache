@@ -133,7 +133,18 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
+        if (mCursor != null) {
+            if (mRegistered) {
+                mCursor.unregisterContentObserver(this);
+                mRegistered = false;
+            }
+            mCursor.close();
+        }
+
         mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        mCursor.registerContentObserver(this);
+        mRegistered = true;
+
         // mCursor.requery();
         if (!mCursor.isClosed() && mCursor.moveToFirst()) {
             String data = mCursor.getString(mCursor.getColumnIndex("data"));
