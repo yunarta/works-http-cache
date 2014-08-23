@@ -24,13 +24,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.TextUtils;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mobilesolutionworks.android.http.WorksHttpAsyncTask;
+import com.mobilesolutionworks.android.http.WorksHttpFutureTask;
 import com.mobilesolutionworks.android.http.WorksHttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -39,9 +40,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -57,6 +56,7 @@ public abstract class WorksHttpCacheService extends IntentService {
     protected Gson mGson;
 
     protected ExecutorService mExecutors;
+    private Handler mHandler;
 
     public WorksHttpCacheService() {
         super("cache-service");
@@ -65,6 +65,9 @@ public abstract class WorksHttpCacheService extends IntentService {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        mHandler = new Handler();
+
         mQueues = new HashSet<Uri>();
         mExecutors = Executors.newCachedThreadPool();
 
@@ -132,11 +135,11 @@ public abstract class WorksHttpCacheService extends IntentService {
         }
 
         String cache = data.getQueryParameter("cache");
-        long time = 2 * 60;
+        long time = 60;
         if (!TextUtils.isEmpty(cache)) {
             time = Long.parseLong(cache);
             if (time == 0) {
-                time = 3 * 60;
+                time = 60;
             }
 
         }
@@ -153,12 +156,12 @@ public abstract class WorksHttpCacheService extends IntentService {
         }
         lTimeout *= 1000;
 
-        Set<String> names = data.getQueryParameterNames();
+        Set<String> names = getQueryParameterNames(data);
 
         Uri.Builder builder = data.buildUpon();
-        builder.clearQuery();
+        builder.query(null);
         for (String name : names) {
-            if ("cache".equals(name) || "timeout".equals(name)) {
+            if ("cache".equals(name) || "timeout".equals(name) || "test".equals(name)) {
                 continue;
             }
 
@@ -172,10 +175,11 @@ public abstract class WorksHttpCacheService extends IntentService {
         }
 
         QueryAndSaveTask task = new QueryAndSaveTask(this, path, intent.getData(), time, lTimeout);
-        task.executeOnExecutor(mExecutors, config);
+
+        task.execute(config, mHandler, mExecutors);
     }
 
-    private class QueryAndSaveTask extends WorksHttpAsyncTask<String> {
+    private class QueryAndSaveTask extends WorksHttpFutureTask<String> {
 
         private String mPath;
 
@@ -273,4 +277,42 @@ public abstract class WorksHttpCacheService extends IntentService {
         }
     }
 
+    /**
+     * Returns a set of the unique names of all query parameters. Iterating
+     * over the set will return the names in order of their first occurrence.
+     *
+     * @throws UnsupportedOperationException if this isn't a hierarchical URI
+     *
+     * @return a set of decoded names
+     */
+    public Set<String> getQueryParameterNames(Uri uri) {
+        if (uri.isOpaque()) {
+            throw new UnsupportedOperationException("This isn't a hierarchical URI.");
+        }
+
+        String query = uri.getEncodedQuery();
+        if (query == null) {
+            return Collections.emptySet();
+        }
+
+        Set<String> names = new LinkedHashSet<String>();
+        int start = 0;
+        do {
+            int next = query.indexOf('&', start);
+            int end = (next == -1) ? query.length() : next;
+
+            int separator = query.indexOf('=', start);
+            if (separator > end || separator == -1) {
+                separator = end;
+            }
+
+            String name = query.substring(start, separator);
+            names.add(uri.decode(name));
+
+            // Move start to end of name.
+            start = end + 1;
+        } while (start < query.length());
+
+        return Collections.unmodifiableSet(names);
+    }
 }

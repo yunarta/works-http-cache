@@ -69,18 +69,13 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
                 ContentValues values = new ContentValues();
                 values.put("error", CacheErrorCode.DELETED.value());
 
-                Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
+                Uri mUriPathOnly = mUri.buildUpon().query(null).build();
                 mContext.getContentResolver().update(mUriPathOnly, values, null, null);
-//                mContext.getContentResolver().delete(mUriPathOnly, null, null);
-            } else {
-                ContentValues values = new ContentValues();
-
-                Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
-                mContext.getContentResolver().update(mUriPathOnly, null, "clear", null);
             }
         }
 
-        return new SyncCursorLoader(mContext, mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        Uri uri = mUri.buildUpon().appendQueryParameter("test", "1").build();
+        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, null, null);
     }
 
     @Override
@@ -106,7 +101,7 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
                 mRegistered = true;
             }
 
-            Uri notifyUri = mUri.buildUpon().clearQuery().build();
+            Uri notifyUri = mUri.buildUpon().query(null).build();
             mCursor.setNotificationUri(mContext.getContentResolver(), notifyUri);
 
             if (mCursor.moveToFirst()) {
@@ -136,7 +131,19 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
-        mCursor.requery();
+        if (mCursor != null) {
+            if (mRegistered) {
+                mCursor.unregisterContentObserver(this);
+                mRegistered = false;
+            }
+            mCursor.close();
+        }
+
+        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        mCursor.registerContentObserver(this);
+        mRegistered = true;
+
+        // mCursor.requery();
         if (!mCursor.isClosed() && mCursor.moveToFirst()) {
             String data = mCursor.getString(mCursor.getColumnIndex("data"));
             long time = mCursor.getLong(mCursor.getColumnIndex("time"));

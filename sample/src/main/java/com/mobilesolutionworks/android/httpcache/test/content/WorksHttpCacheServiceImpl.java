@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httpcache.test;
+package com.mobilesolutionworks.android.httpcache.test.content;
 
 import android.net.Uri;
 import com.mobilesolutionworks.android.httpcache.WorksHttpCacheService;
@@ -26,7 +26,8 @@ public class WorksHttpCacheServiceImpl extends WorksHttpCacheService {
 
     @Override
     protected String createUrl(Uri data, String[] args) {
-        return "" + data.getEncodedPath();
+        Example.Resource resolve = Example.Resource.resolve(data);
+        return resolve.path;
     }
 
     @Override
@@ -36,6 +37,6 @@ public class WorksHttpCacheServiceImpl extends WorksHttpCacheService {
 
     @Override
     protected Uri createUri(String path) {
-        return null;
+        return Example.create(path);
     }
 }
