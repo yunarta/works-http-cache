@@ -17,6 +17,7 @@
 package com.mobilesolutionworks.android.httpcache;
 
 
+import android.annotation.TargetApi;
 import android.app.LoaderManager;
 import android.content.ContentValues;
 import android.content.Context;
@@ -24,6 +25,7 @@ import android.content.Loader;
 import android.database.ContentObserver;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -31,6 +33,7 @@ import android.text.TextUtils;
 /**
  * Created by yunarta on 31/7/14.
  */
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public abstract class HttpCacheLoader extends ContentObserver implements LoaderManager.LoaderCallbacks<Cursor> {
 
     protected Context mContext;
@@ -70,16 +73,11 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
 
                 Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
                 mContext.getContentResolver().update(mUriPathOnly, values, null, null);
-//                mContext.getContentResolver().delete(mUriPathOnly, null, null);
-            } else {
-                ContentValues values = new ContentValues();
-
-                Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
-                mContext.getContentResolver().update(mUriPathOnly, null, "clear", null);
             }
         }
 
-        return new SyncCursorLoader(mContext, mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        Uri uri = mUri.buildUpon().appendQueryParameter("test", "1").build();
+        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, null, null);
     }
 
     @Override
@@ -135,7 +133,8 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
-        mCursor.requery();
+        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        // mCursor.requery();
         if (!mCursor.isClosed() && mCursor.moveToFirst()) {
             String data = mCursor.getString(mCursor.getColumnIndex("data"));
             long time = mCursor.getLong(mCursor.getColumnIndex("time"));

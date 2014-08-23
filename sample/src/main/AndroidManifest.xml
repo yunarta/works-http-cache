@@ -4,9 +4,18 @@
     package="com.mobilesolutionworks.android.httpcache.test"
     xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application android:label="Works Http Cache Test">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <service
-            android:name=".WorksHttpCacheServiceImpl"
+            android:name=".content.WorksHttpCacheServiceImpl"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.mobilesolutionworks.httpcache.action.GET_DATA" />
