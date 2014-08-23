@@ -41,6 +41,6 @@ android {
 }
 
 dependencies {
-    compile project(":works-managed-view")
     compile 'com.android.support:support-v13:19.0.0'
+    compile project(":works-http-cache")
 }

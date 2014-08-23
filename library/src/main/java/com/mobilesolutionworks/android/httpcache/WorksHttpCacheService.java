@@ -201,8 +201,6 @@ public abstract class WorksHttpCacheService extends IntentService {
             HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, mTimeout);
             HttpConnectionParams.setSoTimeout(params, mTimeout);
-
-//            httpRequest.setParams(params);
         }
 
         @Override

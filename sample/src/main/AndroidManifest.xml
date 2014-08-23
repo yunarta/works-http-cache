@@ -1,7 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.mobilesolutionworks.android.httpcache.test">
+<manifest
+    package="com.mobilesolutionworks.android.httpcache.test"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <application android:label="Managed View Test"></application>
+    <application android:label="Works Http Cache Test">
+        <service
+            android:name=".WorksHttpCacheServiceImpl"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.mobilesolutionworks.httpcache.action.GET_DATA" />
+                <data
+                    android:host="com.mobilesolutionworks.httpcache"
+                    android:scheme="content" />
+            </intent-filter>
+        </service>
+
+        <provider
+            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheContentProvider"
+            android:authorities="com.mobilesolutionworks.httpcache"
+            android:exported="false" />
+
+        <meta-data
+            android:name="getDataIntent"
+            android:value="com.mobilesolutionworks.httpcache.action.GET_DATA" />
+    </application>
 </manifest>
