@@ -1,2 +1,2 @@
-Works HTTP-Cache - Experimental
+Works HTTP-Cache - v2 Experimental
 ===============================
