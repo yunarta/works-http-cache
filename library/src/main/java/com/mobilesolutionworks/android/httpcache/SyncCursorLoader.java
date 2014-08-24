@@ -17,14 +17,17 @@
 package com.mobilesolutionworks.android.httpcache;
 
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 
 /**
  * Created by yunarta on 31/7/14.
  */
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class SyncCursorLoader extends Loader<Cursor> {
 
     final ForceLoadContentObserver mObserver;
@@ -124,6 +127,9 @@ public class SyncCursorLoader extends Loader<Cursor> {
     @Override
     protected void onStopLoading() {
         // Attempt to cancel the current load task if possible.
+        if (mCursor != null && !mCursor.isClosed()) {
+            mCursor.close();
+        }
     }
 
     @Override

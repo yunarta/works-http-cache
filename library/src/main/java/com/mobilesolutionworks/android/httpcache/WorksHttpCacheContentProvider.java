@@ -116,6 +116,8 @@ public class WorksHttpCacheContentProvider extends ContentProvider {
 
         Cursor cursor = mDatabase.query(TABLE_NAME, columns, "uri = ? AND time > ? AND " + error, new String[]{path, timeLimit}, sortOrder, null, null);
         if (cursor != null && !cursor.moveToFirst()) {
+
+
             Intent service = new Intent(mGetDataIntent);
             service.setData(uri);
             service.putExtra("params", selection);
@@ -124,6 +126,7 @@ public class WorksHttpCacheContentProvider extends ContentProvider {
             getContext().startService(service);
         }
 
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
