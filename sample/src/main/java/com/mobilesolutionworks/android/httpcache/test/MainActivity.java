@@ -16,15 +16,16 @@
 
 package com.mobilesolutionworks.android.httpcache.test;
 
-import android.content.ContentResolver;
-import android.net.Uri;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.mobilesolutionworks.android.httpcache.test.content.Example;
-import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoader;
+import com.mobilesolutionworks.android.httpcache.test.R;
+import com.mobilesolutionworks.android.httpcache.HttpTagBuilder;
+import com.mobilesolutionworks.android.httpcache.v4.HttpTagLoaderManager;
 
 /**
  * Created by yunarta on 23/8/14.
@@ -41,15 +42,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         findViewById(R.id.btn3).setOnClickListener(this);
     }
 
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     @Override
     public void onClick(View v) {
-        TextView textView = (TextView) findViewById(R.id.text);
-        textView.setText("");
+//        TextView textView = (TextView) findViewById(R.id.text);
+//        textView.setText("");
 
         switch (v.getId()) {
             case R.id.btn1: {
+                HttpTagBuilder builder = new HttpTagBuilder().
+                        parseRemoteUri("http://blog.yunarta.com/test/?a=b").
+                        addParam("name", "yunarta").
+                        noCache();
+
                 getSupportLoaderManager().destroyLoader(0);
-                getSupportLoaderManager().initLoader(0, null, new HttpCacheLoader(this, Example.create(Example.Resource.EXAMPLE1.uri + "?cache=0")) {
+                getSupportLoaderManager().initLoader(0, null, new HttpTagLoaderManager(this, builder) {
+
                     @Override
                     protected void nodata() {
 
@@ -68,8 +76,6 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                         textView = (TextView) findViewById(R.id.text);
                         textView.setText(text);
-
-                        // Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -81,8 +87,14 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn2: {
+                HttpTagBuilder builder = new HttpTagBuilder().
+                        remoteUri("http://blog.yunarta.com/test/").
+                        addParam("name", "john doe").
+                        cacheExpiry(10);
+
                 getSupportLoaderManager().destroyLoader(0);
-                getSupportLoaderManager().initLoader(0, null, new HttpCacheLoader(this, Example.create(Example.Resource.EXAMPLE1.uri + "?cache=30")) {
+                getSupportLoaderManager().initLoader(0, null, new HttpTagLoaderManager(this, builder) {
+
                     @Override
                     protected void nodata() {
 
@@ -97,7 +109,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                         TextView textView;
 
                         textView = (TextView) findViewById(R.id.from);
-                        textView.setText("With Cache");
+                        textView.setText("No Cache");
 
                         textView = (TextView) findViewById(R.id.text);
                         textView.setText(text);
@@ -112,16 +124,9 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn3: {
-                String uri = Example.Resource.EXAMPLE1.uri;
-                Uri path = Example.create(uri);
-
-                ContentResolver cr = getContentResolver();
-                int delete = cr.delete(path, null, new String[]{uri + "%"});
-
-                Toast.makeText(this, "Cache deleted", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Function not implemented", Toast.LENGTH_SHORT).show();
                 break;
             }
         }
     }
-
 }

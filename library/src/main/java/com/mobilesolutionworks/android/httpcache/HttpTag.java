@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httpcache.test.content;
+package com.mobilesolutionworks.android.httpcache;
 
-import android.net.Uri;
-import com.mobilesolutionworks.android.httpcache.WorksHttpCacheService;
+import android.database.Cursor;
 
 /**
- * Created by yunarta on 23/8/14.
+ * Created by yunarta on 24/8/14.
  */
-public class WorksHttpCacheServiceImpl extends WorksHttpCacheService {
+public class HttpTag {
 
-    @Override
-    protected String createUrl(Uri data, String[] args) {
-        Example.Resource resolve = Example.Resource.resolve(data);
-        return resolve.path;
-    }
+    public Cursor cursor;
 
-    @Override
-    protected int resolveUri(Uri data) {
-        return 0;
-    }
+    public String local;
 
-    @Override
-    protected Uri createUri(String path) {
-        return Example.create(path);
+    public String remote;
+
+    public String content;
+
+    public long expiry;
+
+    public int error;
+
+    public boolean loaded;
+
+    public void close() {
+        if (!cursor.isClosed()) {
+            cursor.close();
+        }
     }
 }

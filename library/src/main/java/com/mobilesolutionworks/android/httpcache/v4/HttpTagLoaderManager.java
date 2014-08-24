@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httptag.v4;
+package com.mobilesolutionworks.android.httpcache.v4;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
-import com.mobilesolutionworks.android.httptag.CacheErrorCode;
-import com.mobilesolutionworks.android.httptag.HttpTag;
-import com.mobilesolutionworks.android.httptag.HttpTagBuilder;
+import com.mobilesolutionworks.android.httpcache.CacheErrorCode;
+import com.mobilesolutionworks.android.httpcache.HttpTag;
+import com.mobilesolutionworks.android.httpcache.HttpTagBuilder;
 
 /**
  * Created by yunarta on 24/8/14.

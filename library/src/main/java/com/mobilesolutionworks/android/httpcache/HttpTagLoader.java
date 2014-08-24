@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httptag.v4;
+package com.mobilesolutionworks.android.httpcache;
 
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.support.v4.content.Loader;
-import com.mobilesolutionworks.android.httptag.HttpTag;
-import com.mobilesolutionworks.android.httptag.HttpTagBuilder;
-import com.mobilesolutionworks.android.httptag.HttpTagLoaderImpl;
+import android.content.Loader;
+import android.os.Build;
 
+@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public class HttpTagLoader extends Loader<HttpTag> {
 
     HttpTagLoaderImpl mImplementation;

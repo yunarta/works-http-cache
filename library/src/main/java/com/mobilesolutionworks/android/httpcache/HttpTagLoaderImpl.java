@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httptag;
+package com.mobilesolutionworks.android.httpcache;
 
 import android.content.ContentResolver;
 import android.content.Context;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httptag;
+package com.mobilesolutionworks.android.httpcache;
 
 import android.app.IntentService;
 import android.content.ContentValues;
@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.text.TextUtils;
 import com.mobilesolutionworks.android.http.WorksHttpFutureTask;
 import com.mobilesolutionworks.android.http.WorksHttpRequest;
-import com.mobilesolutionworks.android.httpcache.CacheErrorCode;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpUriRequest;

@@ -19,27 +19,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.mobilesolutionworks.android.httptag.test.MainActivity"
-            android:label="Http Tag Test">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
 
         <service
-            android:name=".content.WorksHttpCacheServiceImpl"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.mobilesolutionworks.httpcache.action.GET_DATA" />
-                <data
-                    android:host="com.mobilesolutionworks.httpcache"
-                    android:scheme="content" />
-            </intent-filter>
-        </service>
-        <service
-            android:name="com.mobilesolutionworks.android.httptag.WorksHttpTagService"
+            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpTagService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.mobilesolutionworks.httpcache.action.GET_TAG" />
@@ -47,17 +29,10 @@
         </service>
 
         <provider
-            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheContentProvider"
-            android:authorities="com.mobilesolutionworks.httpcache"
-            android:exported="false" />
-        <provider
-            android:name="com.mobilesolutionworks.android.httptag.WorksHttpTagProvider"
+            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpTagProvider"
             android:authorities="com.mobilesolutionworks.httptag"
             android:exported="false" />
 
-        <meta-data
-            android:name="getDataIntent"
-            android:value="com.mobilesolutionworks.httpcache.action.GET_DATA" />
         <meta-data
             android:name="getTagIntent"
             android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
