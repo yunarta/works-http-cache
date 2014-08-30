@@ -155,14 +155,31 @@ public class WorksHttpCacheContentProvider extends ContentProvider {
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        String segment = uri.getEncodedPath();
+        Set<String> names = getQueryParameterNames(uri);
+        Uri.Builder builder = uri.buildUpon();
+        builder.query(null);
+
+        for (String name : names) {
+            if ("cache".equals(name) || "timeout".equals(name) || "test".equals(name)) {
+                continue;
+            }
+
+            builder.appendQueryParameter(name, uri.getQueryParameter(name));
+        }
+
+        Uri build = builder.build();
+        String path = build.getEncodedPath();
+        if (build.getEncodedQuery() != null) {
+            path += "?" + build.getEncodedQuery();
+        }
+
         if (values != null) {
-            return mDatabase.update(TABLE_NAME, values, "uri = ?", new String[]{segment});
+            return mDatabase.update(TABLE_NAME, values, "uri = ?", new String[]{path});
         } else {
             values = new ContentValues();
             values.put("error", CacheErrorCode.DELETED.value());
 
-            return mDatabase.update(TABLE_NAME, values, "uri = ? AND error >= 32768", new String[]{segment});
+            return mDatabase.update(TABLE_NAME, values, "uri = ? AND error >= 32768", new String[]{path});
 
         }
     }

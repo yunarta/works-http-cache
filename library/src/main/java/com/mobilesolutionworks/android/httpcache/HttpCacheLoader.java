@@ -30,11 +30,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
 
+import java.util.Set;
+
 /**
  * Created by yunarta on 31/7/14.
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 public abstract class HttpCacheLoader extends ContentObserver implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    protected String[] mArgs;
 
     protected Context mContext;
 
@@ -71,13 +75,25 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
                 ContentValues values = new ContentValues();
                 values.put("error", CacheErrorCode.DELETED.value());
 
-                Uri mUriPathOnly = mUri.buildUpon().clearQuery().build();
+                Uri.Builder builder = mUri.buildUpon();
+                builder.clearQuery();
+
+                Set<String> names = mUri.getQueryParameterNames();
+                for (String name : names) {
+                    if ("cache".equals(name) || "timeout".equals(name) || "test".equals(name)) {
+                        continue;
+                    }
+
+                    builder.appendQueryParameter(name, mUri.getQueryParameter(name));
+                }
+
+                Uri mUriPathOnly = builder.build();
                 mContext.getContentResolver().update(mUriPathOnly, values, null, null);
             }
         }
 
         Uri uri = mUri.buildUpon().appendQueryParameter("test", "1").build();
-        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, null, null);
+        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, mArgs, null);
     }
 
     @Override
@@ -103,8 +119,20 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
                 mRegistered = true;
             }
 
-            Uri notifyUri = mUri.buildUpon().clearQuery().build();
-            mCursor.setNotificationUri(mContext.getContentResolver(), notifyUri);
+            Uri.Builder builder = mUri.buildUpon();
+            builder.clearQuery();
+
+            Set<String> names = mUri.getQueryParameterNames();
+            for (String name : names) {
+                if ("cache".equals(name) || "timeout".equals(name) || "test".equals(name)) {
+                    continue;
+                }
+
+                builder.appendQueryParameter(name, mUri.getQueryParameter(name));
+            }
+
+            Uri mUriPathOnly = builder.build();
+            mCursor.setNotificationUri(mContext.getContentResolver(), mUriPathOnly);
 
             if (mCursor.moveToFirst()) {
                 String data = mCursor.getString(mCursor.getColumnIndex("data"));
@@ -141,9 +169,22 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
             mCursor.close();
         }
 
-        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, mArgs, null);
         mCursor.registerContentObserver(this);
         mRegistered = true;
+
+        Uri.Builder builder = mUri.buildUpon();
+        Set<String> names = mUri.getQueryParameterNames();
+        for (String name : names) {
+            if ("cache".equals(name) || "timeout".equals(name) || "test".equals(name)) {
+                continue;
+            }
+
+            builder.appendQueryParameter(name, mUri.getQueryParameter(name));
+        }
+
+        Uri mUriPathOnly = builder.build();
+        mCursor.setNotificationUri(mContext.getContentResolver(), mUriPathOnly);
 
         // mCursor.requery();
         if (!mCursor.isClosed() && mCursor.moveToFirst()) {

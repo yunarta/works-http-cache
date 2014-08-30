@@ -33,7 +33,7 @@ public enum CacheErrorCode {
     SECURITY_EXCEPTION(0x8000 | 0x0a),
     GENERIC_PROCESS_ERROR(0x8000),
 
-    NET_HTTP_NOT_FOUND(0x4000 | 0x194),
+    NET_HTTP_NOT_FOUND(0x4000 | 404),
     GENERIC_NET_ERROR(0x4000),
     CANCELED(0x1),
     OK(0),
@@ -60,7 +60,7 @@ public enum CacheErrorCode {
 
     public static CacheErrorCode createNet(int value) {
         CacheErrorCode code = sCodeMap.get(0x4000 | value);
-        return code == null ? UNKNOWN : code;
+        return code == null ? GENERIC_NET_ERROR : code;
     }
 
     public static CacheErrorCode createException(Throwable throwable) {

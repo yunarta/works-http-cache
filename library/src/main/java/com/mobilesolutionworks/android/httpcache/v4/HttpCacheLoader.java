@@ -34,6 +34,8 @@ import com.mobilesolutionworks.android.httpcache.CacheErrorCode;
  */
 public abstract class HttpCacheLoader extends ContentObserver implements LoaderManager.LoaderCallbacks<Cursor> {
 
+    protected String[] mArgs;
+
     protected Context mContext;
 
     protected Cursor mCursor;
@@ -70,12 +72,12 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
                 values.put("error", CacheErrorCode.DELETED.value());
 
                 Uri mUriPathOnly = mUri.buildUpon().query(null).build();
-                mContext.getContentResolver().update(mUriPathOnly, values, null, null);
+                mContext.getContentResolver().update(mUriPathOnly, values, null, mArgs);
             }
         }
 
         Uri uri = mUri.buildUpon().appendQueryParameter("test", "1").build();
-        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, null, null);
+        return new SyncCursorLoader(mContext, uri, new String[]{"data", "time", "error"}, mParams, mArgs, null);
     }
 
     @Override
@@ -139,7 +141,7 @@ public abstract class HttpCacheLoader extends ContentObserver implements LoaderM
             mCursor.close();
         }
 
-        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, null, null);
+        mCursor = mContext.getContentResolver().query(mUri, new String[]{"data", "time", "error"}, mParams, mArgs, null);
         mCursor.registerContentObserver(this);
         mRegistered = true;
 
