@@ -20,8 +20,6 @@ import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -50,10 +48,7 @@ public class WorksHttpTagService extends IntentService {
     private Set<String> mQueues;
 
     private ExecutorService mExecutors;
-
-    private String mGetDataIntent;
-
-    private Uri mAuthority;
+    private HttpTagConfiguration mConfiguration;
 
     public WorksHttpTagService() {
         super("tag-service");
@@ -68,24 +63,14 @@ public class WorksHttpTagService extends IntentService {
         mQueues = new HashSet<String>();
         mExecutors = Executors.newCachedThreadPool();
 
-        Bundle metaData;
-        try {
-            ApplicationInfo ai = getPackageManager().getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA);
-            metaData = ai.metaData;
-        } catch (PackageManager.NameNotFoundException e) {
-            metaData = new Bundle();
-            metaData.putString("getTagIntent", "GET_DATA_INTENT");
-        }
-
-        mGetDataIntent = metaData.getString("getTagIntent");
-        mAuthority = new Uri.Builder().scheme("content").authority(metaData.getString("tagAuthority")).build();
+        mConfiguration = HttpTagConfiguration.configure(this);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         if (intent != null) {
             String action = intent.getAction();
-            if (mGetDataIntent.equals(action)) {
+            if (mConfiguration.action.equals(action)) {
                 refreshData(intent);
             }
         }
@@ -227,7 +212,7 @@ public class WorksHttpTagService extends IntentService {
         }
 
         private void insert(ContentValues values) {
-            Uri uri = Uri.withAppendedPath(mAuthority, mLocalUri);
+            Uri uri = Uri.withAppendedPath(mConfiguration.authority, mLocalUri);
 
             getContentResolver().insert(uri, values);
             getContentResolver().notifyChange(uri, null);
