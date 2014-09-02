@@ -26,7 +26,7 @@ import android.net.Uri;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class WorksHttpTagProvider extends ContentProvider {
+public class WorksHttpCacheContentProvider extends ContentProvider {
 
     protected static String TABLE_NAME = "cache";
 

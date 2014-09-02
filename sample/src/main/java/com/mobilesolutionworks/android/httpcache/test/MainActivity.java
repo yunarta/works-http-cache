@@ -23,9 +23,8 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import com.mobilesolutionworks.android.httpcache.test.R;
-import com.mobilesolutionworks.android.httpcache.HttpTagBuilder;
-import com.mobilesolutionworks.android.httpcache.v4.HttpTagLoaderManager;
+import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
+import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoaderManager;
 
 /**
  * Created by yunarta on 23/8/14.
@@ -50,13 +49,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         switch (v.getId()) {
             case R.id.btn1: {
-                HttpTagBuilder builder = new HttpTagBuilder().
+                HttpCacheBuilder builder = new HttpCacheBuilder().
                         parseRemoteUri("http://blog.yunarta.com/test/?a=b").
                         addParam("name", "yunarta").
                         noCache();
 
                 getSupportLoaderManager().destroyLoader(0);
-                getSupportLoaderManager().initLoader(0, null, new HttpTagLoaderManager(this, builder) {
+                getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
 
                     @Override
                     protected void nodata() {
@@ -87,13 +86,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn2: {
-                HttpTagBuilder builder = new HttpTagBuilder().
+                HttpCacheBuilder builder = new HttpCacheBuilder().
                         remoteUri("http://blog.yunarta.com/test/").
                         addParam("name", "john doe").
                         cacheExpiry(10);
 
                 getSupportLoaderManager().destroyLoader(0);
-                getSupportLoaderManager().initLoader(0, null, new HttpTagLoaderManager(this, builder) {
+                getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
 
                     @Override
                     protected void nodata() {

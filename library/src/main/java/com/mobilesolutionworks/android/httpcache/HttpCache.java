@@ -21,7 +21,7 @@ import android.database.Cursor;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class HttpTag {
+public class HttpCache {
 
     public Cursor cursor;
 

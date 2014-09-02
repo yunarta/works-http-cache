@@ -25,26 +25,26 @@ import android.net.Uri;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class HttpTagLoaderImpl {
+public class HttpCacheLoaderImpl {
 
     public static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
 
-    HttpTagBuilder mBuilder;
+    HttpCacheBuilder mBuilder;
 
     Context mContext;
 
-    HttpTag mTag;
+    HttpCache mTag;
 
-    public HttpTagLoaderImpl(Context context, HttpTagBuilder builder) {
+    public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder) {
         mContext = context;
         mBuilder = builder;
     }
 
-    public HttpTag onForceLoad(ContentObserver observer) {
-        HttpTag tag = new HttpTag();
+    public HttpCache onForceLoad(ContentObserver observer) {
+        HttpCache tag = new HttpCache();
         tag.local = mBuilder.localUri();
 
-        Uri authority = HttpTagConfiguration.configure(mContext).authority;
+        Uri authority = HttpCacheConfiguration.configure(mContext).authority;
 
         ContentResolver cr = mContext.getContentResolver();
         tag.cursor = cr.query(authority, PROJECTION, "local = ?", new String[]{tag.local}, null);
@@ -69,7 +69,7 @@ public class HttpTagLoaderImpl {
         return tag;
     }
 
-    public boolean deliverResult(HttpTag tag) {
+    public boolean deliverResult(HttpCache tag) {
         boolean contentChanged = mTag != null;
         if (mTag != null && mTag != tag) {
             mTag.close();
@@ -104,7 +104,7 @@ public class HttpTagLoaderImpl {
         }
 
         if (dispatchRequest) {
-            Intent service = new Intent(HttpTagConfiguration.configure(mContext).action);
+            Intent service = new Intent(HttpCacheConfiguration.configure(mContext).action);
             service.putExtra("local", mBuilder.localUri());
             service.putExtra("remote", mBuilder.remoteUri());
             service.putExtra("cache", mBuilder.cacheExpiry());

@@ -9,11 +9,11 @@ import android.os.Bundle;
 /**
  * Created by yunarta on 3/9/14.
  */
-public class HttpTagConfiguration {
+class HttpCacheConfiguration {
 
-    protected static HttpTagConfiguration INSTANCE;
+    protected static HttpCacheConfiguration INSTANCE;
 
-    public static HttpTagConfiguration configure(Context context) {
+    public static HttpCacheConfiguration configure(Context context) {
         if (INSTANCE == null) {
             Context applicationContext = context.getApplicationContext();
 
@@ -29,7 +29,7 @@ public class HttpTagConfiguration {
                 throw new IllegalStateException("works.httpcache.service OR works.httpcache.authority not configured properly");
             }
 
-            INSTANCE = new HttpTagConfiguration(
+            INSTANCE = new HttpCacheConfiguration(
                     metaData.getString("works.httpcache.service"),
                     new Uri.Builder().scheme("content").authority(metaData.getString("works.httpcache.authority")).build()
             );
@@ -42,7 +42,7 @@ public class HttpTagConfiguration {
 
     public final String action;
 
-    protected HttpTagConfiguration(String action, Uri authority) {
+    protected HttpCacheConfiguration(String action, Uri authority) {
         this.action = action;
         this.authority = authority;
     }

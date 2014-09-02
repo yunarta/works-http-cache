@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class HttpTagBuilder implements Parcelable {
+public class HttpCacheBuilder implements Parcelable {
 
     private String mLocalUri;
 
@@ -48,7 +48,7 @@ public class HttpTagBuilder implements Parcelable {
 
     private String mMethod = "GET";
 
-    public HttpTagBuilder localUri(String localUri) {
+    public HttpCacheBuilder localUri(String localUri) {
         mLocalUri = localUri;
         return this;
     }
@@ -62,7 +62,7 @@ public class HttpTagBuilder implements Parcelable {
         }
     }
 
-    public HttpTagBuilder parseRemoteUri(String remoteUri) {
+    public HttpCacheBuilder parseRemoteUri(String remoteUri) {
         Uri.Builder builder = Uri.parse(remoteUri).buildUpon();
         Uri uri = builder.build();
 
@@ -81,7 +81,7 @@ public class HttpTagBuilder implements Parcelable {
         return this;
     }
 
-    public HttpTagBuilder remoteUri(String remoteUri) {
+    public HttpCacheBuilder remoteUri(String remoteUri) {
         mRemoteUri = remoteUri;
         return this;
     }
@@ -90,7 +90,7 @@ public class HttpTagBuilder implements Parcelable {
         return mRemoteUri;
     }
 
-    public HttpTagBuilder cacheExpiry(int cacheExpiry) {
+    public HttpCacheBuilder cacheExpiry(int cacheExpiry) {
         mCacheExpiry = cacheExpiry;
         return this;
     }
@@ -99,7 +99,7 @@ public class HttpTagBuilder implements Parcelable {
         return mCacheExpiry;
     }
 
-    public HttpTagBuilder timeout(int timeout) {
+    public HttpCacheBuilder timeout(int timeout) {
         mTimeout = timeout;
         return this;
     }
@@ -108,7 +108,7 @@ public class HttpTagBuilder implements Parcelable {
         return mTimeout;
     }
 
-    public HttpTagBuilder addParam(String name, String value) {
+    public HttpCacheBuilder addParam(String name, String value) {
         if (mBundle == null) {
             mBundle = new Bundle();
         }
@@ -117,7 +117,7 @@ public class HttpTagBuilder implements Parcelable {
         return this;
     }
 
-    public HttpTagBuilder params(Bundle bundle) {
+    public HttpCacheBuilder params(Bundle bundle) {
         if (mBundle == null) {
             mBundle = new Bundle();
         }
@@ -130,7 +130,7 @@ public class HttpTagBuilder implements Parcelable {
         return mBundle;
     }
 
-    public HttpTagBuilder noCache() {
+    public HttpCacheBuilder noCache() {
         mNoCache = true;
         return this;
     }
@@ -139,7 +139,7 @@ public class HttpTagBuilder implements Parcelable {
         return mNoCache;
     }
 
-    public HttpTagBuilder loadCacheAnyway() {
+    public HttpCacheBuilder loadCacheAnyway() {
         mLoadCacheAnyway = true;
         return this;
     }
@@ -149,7 +149,7 @@ public class HttpTagBuilder implements Parcelable {
     }
 
 
-    public HttpTagBuilder postMethod() {
+    public HttpCacheBuilder postMethod() {
         mMethod = "POST";
         return this;
     }
@@ -238,10 +238,10 @@ public class HttpTagBuilder implements Parcelable {
         dest.writeString(this.mMethod);
     }
 
-    public HttpTagBuilder() {
+    public HttpCacheBuilder() {
     }
 
-    private HttpTagBuilder(Parcel in) {
+    private HttpCacheBuilder(Parcel in) {
         this.mLocalUri = in.readString();
         this.mRemoteUri = in.readString();
         this.mCacheExpiry = in.readInt();
@@ -252,13 +252,13 @@ public class HttpTagBuilder implements Parcelable {
         this.mMethod = in.readString();
     }
 
-    public static final Creator<HttpTagBuilder> CREATOR = new Creator<HttpTagBuilder>() {
-        public HttpTagBuilder createFromParcel(Parcel source) {
-            return new HttpTagBuilder(source);
+    public static final Creator<HttpCacheBuilder> CREATOR = new Creator<HttpCacheBuilder>() {
+        public HttpCacheBuilder createFromParcel(Parcel source) {
+            return new HttpCacheBuilder(source);
         }
 
-        public HttpTagBuilder[] newArray(int size) {
-            return new HttpTagBuilder[size];
+        public HttpCacheBuilder[] newArray(int size) {
+            return new HttpCacheBuilder[size];
         }
     };
 }

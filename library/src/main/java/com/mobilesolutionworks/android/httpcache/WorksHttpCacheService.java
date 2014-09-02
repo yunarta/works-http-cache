@@ -41,16 +41,16 @@ import java.util.concurrent.Executors;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class WorksHttpTagService extends IntentService {
+public class WorksHttpCacheService extends IntentService {
 
     private Handler mHandler;
 
     private Set<String> mQueues;
 
     private ExecutorService mExecutors;
-    private HttpTagConfiguration mConfiguration;
+    private HttpCacheConfiguration mConfiguration;
 
-    public WorksHttpTagService() {
+    public WorksHttpCacheService() {
         super("tag-service");
     }
 
@@ -63,7 +63,7 @@ public class WorksHttpTagService extends IntentService {
         mQueues = new HashSet<String>();
         mExecutors = Executors.newCachedThreadPool();
 
-        mConfiguration = HttpTagConfiguration.configure(this);
+        mConfiguration = HttpCacheConfiguration.configure(this);
     }
 
     @Override

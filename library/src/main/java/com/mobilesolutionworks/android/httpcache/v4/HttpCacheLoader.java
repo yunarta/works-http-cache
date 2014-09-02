@@ -14,26 +14,26 @@
  * limitations under the License.
  */
 
-package com.mobilesolutionworks.android.httpcache;
+package com.mobilesolutionworks.android.httpcache.v4;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.Loader;
-import android.os.Build;
+import android.support.v4.content.Loader;
+import com.mobilesolutionworks.android.httpcache.HttpCache;
+import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
+import com.mobilesolutionworks.android.httpcache.HttpCacheLoaderImpl;
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class HttpTagLoader extends Loader<HttpTag> {
+public class HttpCacheLoader extends Loader<HttpCache> {
 
-    HttpTagLoaderImpl mImplementation;
+    HttpCacheLoaderImpl mImplementation;
 
     final ForceLoadContentObserver mObserver;
 
-    HttpTag mTag;
+    HttpCache mTag;
 
-    public HttpTagLoader(Context context, HttpTagBuilder builder) {
+    public HttpCacheLoader(Context context, HttpCacheBuilder builder) {
         super(context);
 
-        mImplementation = new HttpTagLoaderImpl(context, builder);
+        mImplementation = new HttpCacheLoaderImpl(context, builder);
         mObserver = new ForceLoadContentObserver();
     }
 
@@ -44,7 +44,7 @@ public class HttpTagLoader extends Loader<HttpTag> {
     }
 
     @Override
-    public void deliverResult(HttpTag tag) {
+    public void deliverResult(HttpCache tag) {
         if (isStarted() && mImplementation.deliverResult(tag)) {
             super.deliverResult(tag);
         }

@@ -27,24 +27,24 @@ import android.os.Bundle;
  * Created by yunarta on 24/8/14.
  */
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public abstract class HttpTagLoaderManager implements LoaderManager.LoaderCallbacks<HttpTag> {
+public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCallbacks<HttpCache> {
 
     private Context mContext;
 
-    private HttpTagBuilder mBuilder;
+    private HttpCacheBuilder mBuilder;
 
-    public HttpTagLoaderManager(Context context, HttpTagBuilder builder) {
+    public HttpCacheLoaderManager(Context context, HttpCacheBuilder builder) {
         mContext = context;
         mBuilder = builder;
     }
 
     @Override
-    public Loader<HttpTag> onCreateLoader(int id, Bundle args) {
-        return new HttpTagLoader(mContext, mBuilder);
+    public Loader<HttpCache> onCreateLoader(int id, Bundle args) {
+        return new HttpCacheLoader(mContext, mBuilder);
     }
 
     @Override
-    public void onLoadFinished(Loader<HttpTag> loader, HttpTag data) {
+    public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
         if (data.loaded) {
             beforeUse(data.error, data.content, data.expiry);
         } else {
@@ -53,7 +53,7 @@ public abstract class HttpTagLoaderManager implements LoaderManager.LoaderCallba
     }
 
     @Override
-    public void onLoaderReset(Loader<HttpTag> loader) {
+    public void onLoaderReset(Loader<HttpCache> loader) {
 
     }
 

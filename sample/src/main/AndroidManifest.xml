@@ -21,7 +21,7 @@
         </activity>
 
         <service
-            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpTagService"
+            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.mobilesolutionworks.httpcache.action.GET_TAG" />
@@ -29,7 +29,7 @@
         </service>
 
         <provider
-            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpTagProvider"
+            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheContentProvider"
             android:authorities="com.mobilesolutionworks.httptag"
             android:exported="false" />
 
