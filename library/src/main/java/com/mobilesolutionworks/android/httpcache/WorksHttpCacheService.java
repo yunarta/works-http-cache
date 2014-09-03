@@ -174,7 +174,8 @@ public class WorksHttpCacheService extends IntentService {
             super.onProcessError(request, exception);
 
             ContentValues values = new ContentValues();
-            values.put("uri", mLocalUri);
+            values.put("local", mLocalUri);
+            values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
             values.put("error", CacheErrorCode.createException(exception).value());
 
@@ -188,7 +189,8 @@ public class WorksHttpCacheService extends IntentService {
             super.onNetError(request, statusCode);
 
             ContentValues values = new ContentValues();
-            values.put("uri", mLocalUri);
+            values.put("local", mLocalUri);
+            values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
             values.put("error", CacheErrorCode.createNet(statusCode).value());
 
@@ -202,7 +204,8 @@ public class WorksHttpCacheService extends IntentService {
             super.onCancelled(request);
 
             ContentValues values = new ContentValues();
-            values.put("uri", mLocalUri);
+            values.put("local", mLocalUri);
+            values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
             values.put("error", CacheErrorCode.CANCELED.value());
 
