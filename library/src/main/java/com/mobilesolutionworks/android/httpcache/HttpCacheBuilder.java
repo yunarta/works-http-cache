@@ -36,7 +36,7 @@ public class HttpCacheBuilder implements Parcelable {
 
     private String mRemoteUri;
 
-    private int mCacheExpiry = 60;
+    private int mCacheExpiry = 30;
 
     private int mTimeout;
 

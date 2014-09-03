@@ -29,7 +29,7 @@ import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
  */
 public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCallbacks<HttpCache> {
 
-    private Context mContext;
+    protected Context mContext;
 
     private HttpCacheBuilder mBuilder;
 
