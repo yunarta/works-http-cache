@@ -77,4 +77,8 @@ public class HttpCacheLoader extends Loader<HttpCache> {
 
         mTag = null;
     }
+
+    public void stopChangeNotificaton() {
+        mImplementation.stopChangeNotificaton(mObserver);
+    }
 }

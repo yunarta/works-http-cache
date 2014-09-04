@@ -37,6 +37,8 @@ public class HttpCache {
 
     public boolean loaded;
 
+    public boolean detached;
+
     public void close() {
         if (!cursor.isClosed()) {
             cursor.close();

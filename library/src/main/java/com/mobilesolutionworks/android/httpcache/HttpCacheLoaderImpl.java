@@ -127,4 +127,12 @@ public class HttpCacheLoaderImpl {
     public void onReset() {
         mTag = null;
     }
+
+    public void stopChangeNotificaton(ContentObserver observer) {
+
+        if (!mTag.detached) {
+            mTag.detached = true;
+            mTag.cursor.unregisterContentObserver(observer);
+        }
+    }
 }

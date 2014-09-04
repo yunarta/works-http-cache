@@ -33,6 +33,10 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     private HttpCacheBuilder mBuilder;
 
+    private HttpCacheLoader mLoader;
+
+    private boolean mLoadFinished;
+
     public HttpCacheLoaderManager(Context context, HttpCacheBuilder builder) {
         mContext = context;
         mBuilder = builder;
@@ -45,6 +49,11 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
+        if (mLoadFinished) return;
+
+        mLoadFinished = true;
+        mLoader = (HttpCacheLoader) loader;
+
         if (data.loaded) {
             beforeUse(data.error, data.content, data.expiry);
         } else {
@@ -54,7 +63,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     @Override
     public void onLoaderReset(Loader<HttpCache> loader) {
-
+        mLoadFinished = false;
     }
 
     private void beforeUse(int errorCode, String data, long time) {
@@ -103,5 +112,11 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     protected void completed() {
 
+    }
+
+    public void stopChangeNotification() {
+        if (mLoader != null) {
+            mLoader.stopChangeNotificaton();
+        }
     }
 }
