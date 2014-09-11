@@ -26,8 +26,24 @@
             android:text="Use Cache"
             android:textSize="12sp" />
 
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
         <Button
             android:id="@+id/btn3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Error Test"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btn4"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -39,8 +55,8 @@
         android:id="@+id/from"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text=""
-        android:padding="5dp" />
+        android:padding="5dp"
+        android:text="" />
 
     <View
         android:layout_width="wrap_content"
@@ -56,8 +72,8 @@
             android:id="@+id/text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:padding="5dp"
             android:text=""
-            android:textSize="12sp"
-            android:padding="5dp" />
+            android:textSize="12sp" />
     </ScrollView>
 </LinearLayout>

@@ -27,13 +27,14 @@ import android.net.Uri;
  */
 public class HttpCacheLoaderImpl {
 
-    public static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
+    static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
 
     HttpCacheBuilder mBuilder;
 
     Context mContext;
 
     HttpCache mTag;
+
 
     public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder) {
         mContext = context;
@@ -82,13 +83,11 @@ public class HttpCacheLoaderImpl {
         boolean deliverResult = false;
 
         if (tag.loaded) {
-
-
             if (!mTag.remote.equals(mBuilder.remoteUri()) || mTag.expiry < System.currentTimeMillis() || mTag.expiry - System.currentTimeMillis() > mBuilder.cacheExpiry() * 1000) {
                 dispatchRequest = true;
             }
 
-            if (mTag.error == 0) {
+            if (mTag.error == 0 || contentChanged) {
                 if ((mBuilder.isLoadCacheAnyway() && !noCache)) {
                     dispatchRequest = true;
                 }

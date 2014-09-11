@@ -20,6 +20,7 @@ import android.annotation.TargetApi;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -59,7 +60,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                     @Override
                     protected void nodata() {
-
+                        Log.d(BuildConfig.DEBUG_TAG, "MainActivity.nodata");
                     }
 
                     @Override
@@ -79,7 +80,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                     @Override
                     protected void error(int error, String data) {
-
+                        Log.d(BuildConfig.DEBUG_TAG, "error = " + error);
                     }
                 });
                 break;
@@ -123,6 +124,49 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn3: {
+                HttpCacheBuilder builder = new HttpCacheBuilder().
+                        remoteUri("http://blog.yunarta.com/test-failed/").
+                        addParam("name", "john doe").
+                        cacheExpiry(10);
+
+                getSupportLoaderManager().destroyLoader(0);
+                getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
+
+                    @Override
+                    protected void nodata() {
+
+                    }
+
+                    @Override
+                    protected void use(int error, String data, long time) {
+                        String text = "";
+                        text += (time - System.currentTimeMillis()) + " ms before clearing";
+                        text += "\n" + data;
+
+                        TextView textView;
+
+                        textView = (TextView) findViewById(R.id.from);
+                        textView.setText("Error Test");
+
+                        textView = (TextView) findViewById(R.id.text);
+                        textView.setText(text);
+                    }
+
+                    @Override
+                    protected void error(int error, String data) {
+                        TextView textView;
+
+                        textView = (TextView) findViewById(R.id.from);
+                        textView.setText("Error Test");
+
+                        textView = (TextView) findViewById(R.id.text);
+                        textView.setText("error = " + error + ", data = " + data);
+                    }
+                });
+                break;
+            }
+
+            case R.id.btn4: {
                 Toast.makeText(this, "Function not implemented", Toast.LENGTH_SHORT).show();
                 break;
             }

@@ -1,0 +1,4 @@
+include ':library'
+include ':sample'
+
+project(":library").name = "works-http-cache"

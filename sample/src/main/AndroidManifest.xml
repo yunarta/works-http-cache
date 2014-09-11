@@ -34,10 +34,10 @@
             android:exported="false" />
 
         <meta-data
-            android:name="getTagIntent"
+            android:name="works.httpcache.service"
             android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
         <meta-data
-            android:name="tagAuthority"
+            android:name="works.httpcache.authority"
             android:value="com.mobilesolutionworks.httptag" />
     </application>
 </manifest>
