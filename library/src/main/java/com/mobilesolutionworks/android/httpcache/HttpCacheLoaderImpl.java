@@ -27,7 +27,7 @@ import android.net.Uri;
  */
 public class HttpCacheLoaderImpl {
 
-    static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
+    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
 
     HttpCacheBuilder mBuilder;
 

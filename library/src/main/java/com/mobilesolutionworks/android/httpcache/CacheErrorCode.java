@@ -27,26 +27,44 @@ import java.util.Map;
  * Created by yunarta on 8/6/14.
  */
 public enum CacheErrorCode {
-    UNKNOWN(0xffffffff),
-    TIMEOUT_EXCEPTION(0x8000 | 0x15),
-    IO_EXCEPTION(0x8000 | 0x14),
-    SECURITY_EXCEPTION(0x8000 | 0x0a),
-    GENERIC_PROCESS_ERROR(0x8000),
 
-    NET_HTTP_NOT_FOUND(0x4000 | 0x194),
-    GENERIC_NET_ERROR(0x4000),
-    CANCELED(0x1),
-    OK(0),
-    DELETED(-1);
+    UNKNOWN(0xffffffff, Category.OK),
+
+    TIMEOUT_EXCEPTION(0x8000 | 0x15, Category.GENERIC_PROCESS_ERROR),
+    IO_EXCEPTION(0x8000 | 0x14, Category.GENERIC_PROCESS_ERROR),
+    SECURITY_EXCEPTION(0x8000 | 0x0a, Category.GENERIC_PROCESS_ERROR),
+    GENERIC_PROCESS_ERROR(0x8000, Category.GENERIC_PROCESS_ERROR),
+
+    NET_HTTP_NOT_FOUND(0x4000 | 0x194, Category.GENERIC_NET_ERROR),
+    GENERIC_NET_ERROR(0x4000, Category.GENERIC_NET_ERROR),
+
+    CANCELED(0x1, Category.OK),
+    OK(0, Category.OK),
+    DELETED(-1, Category.OK);
 
     private int mValue;
 
-    CacheErrorCode(int value) {
+    private final Category mCategory;
+
+    CacheErrorCode(int value, Category category) {
         mValue = value;
+        mCategory = category;
     }
 
     public int value() {
         return mValue;
+    }
+
+    public boolean isProcessError() {
+        return mCategory == Category.GENERIC_PROCESS_ERROR;
+    }
+
+    public boolean isNetError() {
+        return mCategory == Category.GENERIC_NET_ERROR;
+    }
+
+    public boolean isOK() {
+        return mCategory == Category.OK;
     }
 
     private static Map<Integer, CacheErrorCode> sCodeMap = new HashMap<Integer, CacheErrorCode>();
@@ -85,5 +103,9 @@ public enum CacheErrorCode {
     public static CacheErrorCode getGeneric(int value) {
         int generic = value >> 12 << 12;
         return get(generic);
+    }
+
+    private enum Category {
+        GENERIC_PROCESS_ERROR, GENERIC_NET_ERROR, OK
     }
 }
