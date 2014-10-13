@@ -22,7 +22,7 @@ import android.content.Loader;
 import android.os.Build;
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-public class HttpCacheLoader extends Loader<HttpCache> {
+public class HttpCacheLoader extends Loader<HttpCache> implements HttpCacheLoaderImpl.Callback {
 
     HttpCacheLoaderImpl mImplementation;
 
@@ -33,7 +33,7 @@ public class HttpCacheLoader extends Loader<HttpCache> {
     public HttpCacheLoader(Context context, HttpCacheBuilder builder) {
         super(context);
 
-        mImplementation = new HttpCacheLoaderImpl(context, builder);
+        mImplementation = new HttpCacheLoaderImpl(context, builder, this);
         mObserver = new ForceLoadContentObserver();
     }
 
@@ -80,5 +80,10 @@ public class HttpCacheLoader extends Loader<HttpCache> {
 
     public void stopChangeNotificaton() {
         mImplementation.stopChangeNotificaton(mObserver);
+    }
+
+    @Override
+    public boolean willDispatch(HttpCacheBuilder builder) {
+        return false;
     }
 }

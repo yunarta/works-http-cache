@@ -27,6 +27,11 @@ import android.net.Uri;
  */
 public class HttpCacheLoaderImpl {
 
+    public interface Callback {
+
+        boolean willDispatch(HttpCacheBuilder builder);
+    }
+
     private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
 
     HttpCacheBuilder mBuilder;
@@ -35,10 +40,12 @@ public class HttpCacheLoaderImpl {
 
     HttpCache mTag;
 
+    Callback mCallback;
 
-    public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder) {
+    public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder, Callback callback) {
         mContext = context;
         mBuilder = builder;
+        mCallback = callback;
     }
 
     public HttpCache onForceLoad(ContentObserver observer) {
@@ -103,15 +110,18 @@ public class HttpCacheLoaderImpl {
         }
 
         if (dispatchRequest) {
-            Intent service = new Intent(HttpCacheConfiguration.configure(mContext).action);
-            service.putExtra("local", mBuilder.localUri());
-            service.putExtra("remote", mBuilder.remoteUri());
-            service.putExtra("cache", mBuilder.cacheExpiry());
-            service.putExtra("timeout", mBuilder.timeout());
-            service.putExtra("params", mBuilder.params());
-            service.putExtra("method", mBuilder.method());
+            if (!mCallback.willDispatch(mBuilder)) {
+                Intent service = new Intent(HttpCacheConfiguration.configure(mContext).action);
 
-            mContext.startService(service);
+                service.putExtra("local", mBuilder.localUri());
+                service.putExtra("remote", mBuilder.remoteUri());
+                service.putExtra("cache", mBuilder.cacheExpiry());
+                service.putExtra("timeout", mBuilder.timeout());
+                service.putExtra("params", mBuilder.params());
+                service.putExtra("method", mBuilder.method());
+
+                mContext.startService(service);
+            }
         }
 
         return deliverResult;

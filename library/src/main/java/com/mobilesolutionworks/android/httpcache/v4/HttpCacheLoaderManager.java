@@ -44,7 +44,11 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     @Override
     public Loader<HttpCache> onCreateLoader(int id, Bundle args) {
-        return new HttpCacheLoader(mContext, mBuilder);
+        return onCreateLoader(mContext, mBuilder);
+    }
+
+    protected Loader<HttpCache> onCreateLoader(Context context, HttpCacheBuilder builder) {
+        return new HttpCacheLoader(context, builder);
     }
 
     @Override

@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 10
+        minSdkVersion 13
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
         versionName "1.0"
@@ -34,6 +34,6 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:support-v13:19.0.0'
+    compile 'com.android.support:support-v4:20.0.0'
     compile project(":works-http-cache")
 }

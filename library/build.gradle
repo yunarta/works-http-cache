@@ -6,7 +6,7 @@ repositories {
 }
 
 group 'com.mobilesolutionworks'
-version '2.0.0'
+version '2.0.5'
 
 android {
     compileSdkVersion 19
@@ -24,7 +24,7 @@ android {
         minSdkVersion 8
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "2.0.5"
     }
 
     buildTypes {
@@ -40,8 +40,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':works-http')
-    compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.android.support:support-v13:19.0.0'
+    compile 'com.google.code.gson:gson:2.+'
+    compile 'com.android.support:support-v4:20.0.0'
 }
 
 def generatePom() {

@@ -32,6 +32,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.HttpContext;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -48,6 +49,7 @@ public class WorksHttpCacheService extends IntentService {
     private Set<String> mQueues;
 
     private ExecutorService mExecutors;
+
     private HttpCacheConfiguration mConfiguration;
 
     public WorksHttpCacheService() {
@@ -120,11 +122,15 @@ public class WorksHttpCacheService extends IntentService {
         }
         timeout *= 1000;
 
-        QueryAndSaveTask task = new QueryAndSaveTask(this, local, cache, timeout);
+        WorksHttpFutureTask<String> task = getSaveTask(local, cache, timeout);
         task.execute(config, mHandler, mExecutors);
     }
 
-    private class QueryAndSaveTask extends WorksHttpFutureTask<String> {
+    protected HttpContext onGetHttpContext() {
+        return null;
+    }
+
+    protected class QueryAndSaveTask extends WorksHttpFutureTask<String> {
 
         private final long mCache;
 
@@ -141,8 +147,14 @@ public class WorksHttpCacheService extends IntentService {
         }
 
         @Override
+        public HttpContext getHttpContext() {
+            return onGetHttpContext();
+        }
+
+        @Override
         public void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest) {
             super.onPreExecute(request, httpRequest);
+            WorksHttpCacheService.this.onPreExecute(request, httpRequest);
 
             HttpParams params = new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, mTimeout);
@@ -152,7 +164,7 @@ public class WorksHttpCacheService extends IntentService {
         @Override
         public boolean onValidateResponse(WorksHttpRequest request, HttpResponse httpResponse) {
             StatusLine statusLine = httpResponse.getStatusLine();
-            return (statusLine.getStatusCode() >= 200) && (statusLine.getStatusCode() < 300);
+            return (statusLine.getStatusCode() >= 200) && (statusLine.getStatusCode() < 300) || WorksHttpCacheService.this.onValidateResponse(request, httpResponse);
         }
 
         @Override
@@ -179,6 +191,7 @@ public class WorksHttpCacheService extends IntentService {
             values.put("time", System.currentTimeMillis() + mCache);
             values.put("error", CacheErrorCode.createException(exception).value());
 
+            onReportError(request, exception);
             mQueues.remove(mLocalUri);
 
             insert(values);
@@ -220,6 +233,22 @@ public class WorksHttpCacheService extends IntentService {
             getContentResolver().insert(uri, values);
             getContentResolver().notifyChange(uri, null);
         }
+
+    }
+
+    protected WorksHttpFutureTask<String> getSaveTask(String local, int cache, int timeout) {
+        return new QueryAndSaveTask(this, local, cache, timeout);
+    }
+
+    protected void onReportError(WorksHttpRequest request, Throwable exception) {
+
+    }
+
+    protected boolean onValidateResponse(WorksHttpRequest request, HttpResponse response) {
+        return true;
+    }
+
+    protected void onPreExecute(WorksHttpRequest request, HttpUriRequest httpRequest) {
 
     }
 }

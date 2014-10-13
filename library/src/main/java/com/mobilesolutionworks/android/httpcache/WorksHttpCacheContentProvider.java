@@ -34,7 +34,7 @@ public class WorksHttpCacheContentProvider extends ContentProvider {
 
     @Override
     public boolean onCreate() {
-        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "tag-cache", null, 6) {
+        SQLiteOpenHelper SQLiteOpenHelper = new android.database.sqlite.SQLiteOpenHelper(getContext(), "tag-cache", null, 8) {
 
             @Override
             public void onCreate(SQLiteDatabase db) {
