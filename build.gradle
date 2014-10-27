@@ -1,11 +1,12 @@
 buildscript {
     repositories {
+        jcenter()
         mavenCentral()
         mavenLocal()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.12.2'
+        classpath 'com.android.tools.build:gradle:0.13.2'
     }
 }
 
@@ -14,6 +15,7 @@ allprojects {
     apply plugin: 'maven-publish'
 
     repositories {
+        jcenter()
         mavenCentral()
         mavenLocal()
     }
