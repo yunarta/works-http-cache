@@ -1,16 +1,12 @@
 apply plugin: 'com.android.library'
 apply plugin: 'signing'
 
-repositories {
-    mavenCentral()
-}
-
 group 'com.mobilesolutionworks'
-version '2.0.5'
+version '2.0.6'
 
 android {
-    compileSdkVersion 20
-    buildToolsVersion '20.0.0'
+    compileSdkVersion 21
+    buildToolsVersion "21.0.2"
 
     def androidTargetSdkVersion = compileSdkVersion
 
@@ -24,7 +20,7 @@ android {
         minSdkVersion 8
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
-        versionName "2.0.5"
+        versionName "2.0.6"
     }
 
     buildTypes {
@@ -38,10 +34,14 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    def androidSupportVersion = "21.0.0"
+    if (project.hasProperty('androidConfiguration')) {
+        androidSupportVersion = project.androidSupportVersion
+    }
+
+    compile 'com.android.support:support-v4:' + androidSupportVersion
     compile project(':works-http')
-    compile 'com.google.code.gson:gson:2.+'
-    compile 'com.android.support:support-v4:20.0.0'
+    compile 'com.google.code.gson:gson:2.3'
 }
 
 def generatePom() {
