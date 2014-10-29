@@ -21,7 +21,7 @@
         </activity>
 
         <service
-            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheService"
+            android:name="com.mobilesolutionworks.android.httpcache.LoopJHttpCacheService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.mobilesolutionworks.httpcache.action.GET_TAG" />

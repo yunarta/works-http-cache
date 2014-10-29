@@ -27,6 +27,9 @@ import android.widget.Toast;
 import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
 import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoaderManager;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 /**
  * Created by yunarta on 23/8/14.
  */
@@ -153,14 +156,30 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
 
                     @Override
-                    protected void error(int error, String data) {
+                    protected boolean pf(int error, Throwable trace, String data) {
+                        StringWriter wr = new StringWriter();
+
+                        trace.printStackTrace(new PrintWriter(wr));
                         TextView textView;
 
                         textView = (TextView) findViewById(R.id.from);
                         textView.setText("Error Test");
 
                         textView = (TextView) findViewById(R.id.text);
-                        textView.setText("error = " + error + ", data = " + data);
+                        textView.setText("error = " + error + ", data = " + data + ", trace = " + trace + "\n" + wr.toString());
+
+                        return super.pf(error, trace, data);
+                    }
+
+                    @Override
+                    protected void error(int error, String data) {
+//                        TextView textView;
+//
+//                        textView = (TextView) findViewById(R.id.from);
+//                        textView.setText("Error Test");
+//
+//                        textView = (TextView) findViewById(R.id.text);
+//                        textView.setText("error = " + error + ", data = " + data);
                     }
                 });
                 break;

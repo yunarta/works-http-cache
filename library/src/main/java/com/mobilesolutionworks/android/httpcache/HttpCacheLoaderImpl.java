@@ -22,6 +22,8 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 /**
  * Created by yunarta on 24/8/14.
  */
@@ -32,7 +34,7 @@ public class HttpCacheLoaderImpl {
         boolean willDispatch(HttpCacheBuilder builder);
     }
 
-    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
+    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error", "trace", "status"};
 
     HttpCacheBuilder mBuilder;
 
@@ -72,6 +74,13 @@ public class HttpCacheLoaderImpl {
             tag.content = tag.cursor.getString(1);
             tag.expiry = tag.cursor.getLong(2);
             tag.error = tag.cursor.getInt(3);
+
+            byte[] trace = tag.cursor.getBlob(4);
+            if (trace != null) {
+                tag.trace = SerializationUtils.deserialize(trace);
+            }
+
+            tag.status = tag.cursor.getInt(5);
         }
 
         return tag;

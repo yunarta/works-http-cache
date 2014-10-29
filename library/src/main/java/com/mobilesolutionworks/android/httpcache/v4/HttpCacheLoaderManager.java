@@ -59,7 +59,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
         mLoader = (HttpCacheLoader) loader;
 
         if (data.loaded) {
-            beforeUse(data.error, data.content, data.expiry);
+            beforeUse(data.error, data.trace, data.content, data.expiry);
         } else {
             nodata();
         }
@@ -70,7 +70,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
         mLoadFinished = false;
     }
 
-    private void beforeUse(int errorCode, String data, long time) {
+    private void beforeUse(int errorCode, Throwable trace, String data, long time) {
         try {
             CacheErrorCode generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
@@ -82,7 +82,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
                 }
 
                 case GENERIC_PROCESS_ERROR: {
-                    if (pf(errorCode, data)) {
+                    if (pf(errorCode, trace, data)) {
                         return;
                     }
                     break;
@@ -100,7 +100,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
         }
     }
 
-    protected boolean pf(int error, String data) {
+    protected boolean pf(int error, Throwable trace, String data) {
         return false;
     }
 
