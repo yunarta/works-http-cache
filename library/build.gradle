@@ -6,7 +6,7 @@ version '2.0.6'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.0.2"
+    buildToolsVersion "21.1.0"
 
     def androidTargetSdkVersion = compileSdkVersion
 
@@ -25,10 +25,10 @@ android {
 
     buildTypes {
         release {
-            runProguard false
-            if (runProguard) {
-                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
-            }
+//            runProguard false
+//            if (runProguard) {
+//                proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+//            }
         }
     }
 }
