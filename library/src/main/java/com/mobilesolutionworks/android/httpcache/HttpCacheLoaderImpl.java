@@ -128,6 +128,7 @@ public class HttpCacheLoaderImpl {
                 service.putExtra("timeout", mBuilder.timeout());
                 service.putExtra("params", mBuilder.params());
                 service.putExtra("method", mBuilder.method());
+                service.putExtra("token", mBuilder.token());
 
                 mContext.startService(service);
             }

@@ -37,6 +37,12 @@
             android:name="works.httpcache.service"
             android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
         <meta-data
+            android:name="works.httpcache.service.get"
+            android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
+        <meta-data
+            android:name="works.httpcache.service.clear"
+            android:value="com.mobilesolutionworks.httpcache.action.CLEAR_COOKIE" />
+        <meta-data
             android:name="works.httpcache.authority"
             android:value="com.mobilesolutionworks.httptag" />
     </application>

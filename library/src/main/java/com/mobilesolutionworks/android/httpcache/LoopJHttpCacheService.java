@@ -11,6 +11,7 @@ import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.http.Header;
+import org.apache.http.client.HttpResponseException;
 
 /**
  * Created by yunarta on 29/10/14.
@@ -32,42 +33,51 @@ public class LoopJHttpCacheService extends HttpCacheService {
         TextHttpResponseHandler handler = new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-                ContentValues values = new ContentValues();
-                values.put("local", local);
-                values.put("remote", remote);
-                values.put("data", "");
-                values.put("time", System.currentTimeMillis() + cache);
-                values.put("error", CacheErrorCode.PROCESS_ERROR);
+                if (throwable instanceof HttpResponseException) {
+                    ContentValues values = new ContentValues();
+                    values.put("local", local);
+                    values.put("remote", remote);
+                    values.put("data", "");
+                    values.put("time", System.currentTimeMillis() + cache);
 
-                values.put("trace", SerializationUtils.serialize(throwable));
-                values.put("status", statusCode);
+                    if (onValidateStatus(statusCode)) {
+                        values.put("error", CacheErrorCode.OK);
+                        values.putNull("trace");
+                    } else {
+                        values.put("error", CacheErrorCode.createNet(statusCode));
+                        values.put("trace", SerializationUtils.serialize(throwable));
+                    }
 
-                insert(values, local);
+                    values.put("status", statusCode);
+
+                    insert(values, local);
+                } else {
+                    ContentValues values = new ContentValues();
+                    values.put("local", local);
+                    values.put("remote", remote);
+                    values.put("data", "");
+                    values.put("time", System.currentTimeMillis() + cache);
+                    values.put("error", CacheErrorCode.PROCESS_ERROR);
+
+                    values.put("trace", SerializationUtils.serialize(throwable));
+                    values.put("status", statusCode);
+
+                    insert(values, local);
+                }
             }
 
             @Override
             public void onSuccess(int statusCode, Header[] headers, String responseString) {
                 ContentValues values = new ContentValues();
-                if (onValidateStatus(statusCode)) {
-                    values.put("local", local);
-                    values.put("remote", remote);
-                    values.put("data", responseString);
-                    values.put("time", System.currentTimeMillis() + cache);
-                    values.put("error", CacheErrorCode.OK);
 
-                    values.putNull("trace");
-                    values.put("status", statusCode);
-                } else {
-                    values.put("local", local);
-                    values.put("remote", remote);
-                    values.put("data", responseString);
-                    values.put("time", System.currentTimeMillis() + cache);
-                    values.put("error", CacheErrorCode.createNet(statusCode));
+                values.put("local", local);
+                values.put("remote", remote);
+                values.put("data", responseString);
+                values.put("time", System.currentTimeMillis() + cache);
+                values.put("error", CacheErrorCode.OK);
 
-                    values.putNull("trace");
-                    values.put("status", statusCode);
-                }
-
+                values.putNull("trace");
+                values.put("status", statusCode);
                 insert(values, local);
             }
         };
@@ -77,6 +87,8 @@ public class LoopJHttpCacheService extends HttpCacheService {
         String contentType = null;
 
         AsyncHttpClient client = new AsyncHttpClient();
+        client.setCookieStore(mCookieStore);
+
         RequestHandle handle;
         if ("POST".equals(method)) {
             handle = client.post(this, remote, headers, rp, contentType, handler);

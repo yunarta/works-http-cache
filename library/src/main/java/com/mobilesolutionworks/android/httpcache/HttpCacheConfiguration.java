@@ -25,12 +25,15 @@ class HttpCacheConfiguration {
                 metaData = new Bundle();
             }
 
-            if (!metaData.containsKey("works.httpcache.service") || !metaData.containsKey("works.httpcache.authority")) {
+            if (!metaData.containsKey("works.httpcache.service.get") ||
+                !metaData.containsKey("works.httpcache.service.clear") ||
+                !metaData.containsKey("works.httpcache.authority")) {
                 throw new IllegalStateException("works.httpcache.service OR works.httpcache.authority not configured properly");
             }
 
             INSTANCE = new HttpCacheConfiguration(
-                    metaData.getString("works.httpcache.service"),
+                    metaData.getString("works.httpcache.service.get"),
+                    metaData.getString("works.httpcache.service.clear"),
                     new Uri.Builder().scheme("content").authority(metaData.getString("works.httpcache.authority")).build()
             );
         }
@@ -42,8 +45,11 @@ class HttpCacheConfiguration {
 
     public final String action;
 
-    protected HttpCacheConfiguration(String action, Uri authority) {
+    public final String clearCookie;
+
+    protected HttpCacheConfiguration(String action, String clearCookie, Uri authority) {
         this.action = action;
+        this.clearCookie = clearCookie;
         this.authority = authority;
     }
 }

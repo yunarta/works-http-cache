@@ -23,6 +23,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 
+import org.apache.http.client.CookieStore;
+import org.apache.http.impl.client.BasicCookieStore;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,6 +40,8 @@ public class HttpCacheService extends BaseService {
 
     protected HttpCacheConfiguration mConfiguration;
 
+    protected CookieStore mCookieStore;
+
     public HttpCacheService() {
         super("tag-service");
     }
@@ -49,6 +54,8 @@ public class HttpCacheService extends BaseService {
 
         mQueues = new HashSet<String>();
         mConfiguration = HttpCacheConfiguration.configure(this);
+
+        mCookieStore = new BasicCookieStore();
     }
 
     @Override
@@ -62,6 +69,8 @@ public class HttpCacheService extends BaseService {
             String action = intent.getAction();
             if (mConfiguration.action.equals(action)) {
                 refreshData(intent);
+            } else if (mConfiguration.clearCookie.equals(action)) {
+                clearCookie();
             }
         }
     }
@@ -94,6 +103,10 @@ public class HttpCacheService extends BaseService {
         timeout *= 1000;
 
         executeRequest(local, remote, _method, params, cache, timeout);
+    }
+
+    protected void clearCookie() {
+        mCookieStore.clear();
     }
 
     protected void executeRequest(String local, String remote, String method, Bundle params, int cache, int timeout) {
