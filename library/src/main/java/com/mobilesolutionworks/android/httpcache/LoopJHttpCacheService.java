@@ -32,13 +32,12 @@ public class LoopJHttpCacheService extends HttpCacheService {
         TextHttpResponseHandler handler = new TextHttpResponseHandler() {
             @Override
             public void onFailure(int statusCode, Header[] headers, String responseString, Throwable throwable) {
-
                 ContentValues values = new ContentValues();
                 values.put("local", local);
                 values.put("remote", remote);
                 values.put("data", "");
                 values.put("time", System.currentTimeMillis() + cache);
-                values.put("error", CacheErrorCode.GENERIC_PROCESS_ERROR.value());
+                values.put("error", CacheErrorCode.PROCESS_ERROR);
 
                 values.put("trace", SerializationUtils.serialize(throwable));
                 values.put("status", statusCode);
@@ -54,7 +53,7 @@ public class LoopJHttpCacheService extends HttpCacheService {
                     values.put("remote", remote);
                     values.put("data", responseString);
                     values.put("time", System.currentTimeMillis() + cache);
-                    values.put("error", CacheErrorCode.OK.value());
+                    values.put("error", CacheErrorCode.OK);
 
                     values.putNull("trace");
                     values.put("status", statusCode);
@@ -63,7 +62,7 @@ public class LoopJHttpCacheService extends HttpCacheService {
                     values.put("remote", remote);
                     values.put("data", responseString);
                     values.put("time", System.currentTimeMillis() + cache);
-                    values.put("error", CacheErrorCode.createNet(statusCode).value());
+                    values.put("error", CacheErrorCode.createNet(statusCode));
 
                     values.putNull("trace");
                     values.put("status", statusCode);

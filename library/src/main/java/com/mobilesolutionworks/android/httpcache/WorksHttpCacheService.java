@@ -121,7 +121,7 @@ public class WorksHttpCacheService extends HttpCacheService {
             values.put("remote", request.url);
             values.put("data", data);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.OK.value());
+            values.put("error", CacheErrorCode.OK);
 
 
             insert(values, mLocalUri);
@@ -135,7 +135,7 @@ public class WorksHttpCacheService extends HttpCacheService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.createException(exception).value());
+            values.put("error", CacheErrorCode.PROCESS_ERROR);
 
             onReportError(request, exception);
 
@@ -150,7 +150,7 @@ public class WorksHttpCacheService extends HttpCacheService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.createNet(statusCode).value());
+            values.put("error", CacheErrorCode.createNet(statusCode));
 
             insert(values, mLocalUri);
         }
@@ -163,7 +163,7 @@ public class WorksHttpCacheService extends HttpCacheService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.CANCELED.value());
+            values.put("error", CacheErrorCode.CANCELED);
 
             insert(values, mLocalUri);
         }

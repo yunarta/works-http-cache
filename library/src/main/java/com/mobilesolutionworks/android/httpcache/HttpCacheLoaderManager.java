@@ -66,16 +66,16 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     private void beforeUse(int errorCode, String data, long time) {
         try {
-            CacheErrorCode generic = CacheErrorCode.getGeneric(errorCode);
+            int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
-                case GENERIC_NET_ERROR: {
+                case CacheErrorCode.NET_ERROR: {
                     if (netf(errorCode, data)) {
                         return;
                     }
                     break;
                 }
 
-                case GENERIC_PROCESS_ERROR: {
+                case CacheErrorCode.PROCESS_ERROR: {
                     if (pf(errorCode, data)) {
                         return;
                     }
