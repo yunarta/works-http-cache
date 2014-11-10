@@ -20,6 +20,7 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
+
 import com.mobilesolutionworks.android.httpcache.CacheErrorCode;
 import com.mobilesolutionworks.android.httpcache.HttpCache;
 import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
@@ -29,7 +30,7 @@ import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
  */
 public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCallbacks<HttpCache> {
 
-    protected Context mContext;
+    private Context mContext;
 
     private HttpCacheBuilder mBuilder;
 
@@ -61,7 +62,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
         if (data.loaded) {
             beforeUse(data.error, data.trace, data.content, data.expiry);
         } else {
-            nodata();
+            onDataLoading();
         }
     }
 
@@ -75,46 +76,46 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
             int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
                 case CacheErrorCode.NET_ERROR: {
-                    if (netf(errorCode, data)) {
+                    if (onHandleNetError(errorCode, data)) {
                         return;
                     }
                     break;
                 }
 
                 case CacheErrorCode.PROCESS_ERROR: {
-                    if (pf(errorCode, trace, data)) {
+                    if (onHandleException(errorCode, data, trace)) {
                         return;
                     }
                     break;
                 }
 
                 default: {
-                    use(errorCode, data, time);
+                    onDataFinished(errorCode, data, time);
                     return;
                 }
             }
 
-            error(errorCode, data);
+            onError(errorCode, data);
         } finally {
-            completed();
+            onCompleted();
         }
     }
 
-    protected boolean pf(int error, Throwable trace, String data) {
+    protected abstract void onDataLoading();
+
+    protected abstract void onDataFinished(int error, String data, long time);
+
+    protected boolean onHandleException(int error, String data, Throwable trace) {
         return false;
     }
 
-    protected boolean netf(int error, String data) {
+    protected boolean onHandleNetError(int error, String data) {
         return false;
     }
 
-    protected abstract void nodata();
+    protected abstract void onError(int error, String data);
 
-    protected abstract void use(int error, String data, long time);
-
-    protected abstract void error(int error, String data);
-
-    protected void completed() {
+    protected void onCompleted() {
 
     }
 

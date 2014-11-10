@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                     @Override
                     protected void nodata() {
-                        Log.d(BuildConfig.DEBUG_TAG, "MainActivity.nodata");
+                        Log.d(BuildConfig.DEBUG_TAG, "MainActivity.onDataLoading");
                     }
 
                     @Override

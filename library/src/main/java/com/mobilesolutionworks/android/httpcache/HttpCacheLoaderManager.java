@@ -35,6 +35,8 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     private HttpCacheLoader mLoader;
 
+    private boolean mLoadFinished;
+
     public HttpCacheLoaderManager(Context context, HttpCacheBuilder builder) {
         mContext = context;
         mBuilder = builder;
@@ -51,64 +53,68 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
+        if (mLoadFinished) return;
+
+        mLoadFinished = true;
         mLoader = (HttpCacheLoader) loader;
+
         if (data.loaded) {
-            beforeUse(data.error, data.content, data.expiry);
+            beforeUse(data.error, data.trace, data.content, data.expiry);
         } else {
-            nodata();
+            onDataLoading();
         }
     }
 
     @Override
     public void onLoaderReset(Loader<HttpCache> loader) {
-
+        mLoadFinished = false;
     }
 
-    private void beforeUse(int errorCode, String data, long time) {
+    private void beforeUse(int errorCode, Throwable trace, String data, long time) {
         try {
             int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
                 case CacheErrorCode.NET_ERROR: {
-                    if (netf(errorCode, data)) {
+                    if (onHandleNetError(errorCode, data)) {
                         return;
                     }
                     break;
                 }
 
                 case CacheErrorCode.PROCESS_ERROR: {
-                    if (pf(errorCode, data)) {
+                    if (onHandleException(errorCode, data, trace)) {
                         return;
                     }
                     break;
                 }
 
                 default: {
-                    use(errorCode, data, time);
+                    onDataFinished(errorCode, data, time);
                     return;
                 }
             }
 
-            error(errorCode, data);
+            onError(errorCode, data);
         } finally {
-            completed();
+            onCompleted();
         }
     }
 
-    protected boolean pf(int error, String data) {
+    protected abstract void onDataLoading();
+
+    protected abstract void onDataFinished(int error, String data, long time);
+
+    protected boolean onHandleException(int error, String data, Throwable trace) {
         return false;
     }
 
-    protected boolean netf(int error, String data) {
+    protected boolean onHandleNetError(int error, String data) {
         return false;
     }
 
-    protected abstract void nodata();
+    protected abstract void onError(int error, String data);
 
-    protected abstract void use(int error, String data, long time);
-
-    protected abstract void error(int error, String data);
-
-    protected void completed() {
+    protected void onCompleted() {
 
     }
 
