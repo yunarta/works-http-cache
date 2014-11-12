@@ -41,10 +41,10 @@ public class LoopJHttpCacheService extends HttpCacheService {
                     values.put("time", System.currentTimeMillis() + cache);
 
                     if (onValidateStatus(statusCode)) {
-                        values.put("error", CacheErrorCode.OK);
+                        values.put("error", CacheErrorCode.createNet(statusCode));
                         values.putNull("trace");
                     } else {
-                        values.put("error", CacheErrorCode.createNet(statusCode));
+                        values.put("error", CacheErrorCode.PROCESS_ERROR);
                         values.put("trace", SerializationUtils.serialize(throwable));
                     }
 

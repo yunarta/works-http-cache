@@ -23,12 +23,10 @@ import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
-import android.widget.Toast;
-import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
-import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoaderManager;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
+import com.mobilesolutionworks.android.httpcache.HttpCacheUtil;
+import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoaderManager;
 
 /**
  * Created by yunarta on 23/8/14.
@@ -43,6 +41,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         findViewById(R.id.btn1).setOnClickListener(this);
         findViewById(R.id.btn2).setOnClickListener(this);
         findViewById(R.id.btn3).setOnClickListener(this);
+        findViewById(R.id.btn4).setOnClickListener(this);
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
@@ -54,6 +53,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
         switch (v.getId()) {
             case R.id.btn1: {
                 HttpCacheBuilder builder = new HttpCacheBuilder().
+                        localUri("/test").
                         parseRemoteUri("http://blog.yunarta.com/test/?a=b").
                         addParam("name", "yunarta").
                         noCache();
@@ -62,12 +62,12 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
 
                     @Override
-                    protected void nodata() {
+                    protected void onDataLoading() {
                         Log.d(BuildConfig.DEBUG_TAG, "MainActivity.onDataLoading");
                     }
 
                     @Override
-                    protected void use(int error, String data, long time) {
+                    protected void onDataFinished(int error, String data, long time) {
                         String text = "";
                         text += (time - System.currentTimeMillis()) + " ms before clearing";
                         text += "\n" + data;
@@ -79,10 +79,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
                         textView = (TextView) findViewById(R.id.text);
                         textView.setText(text);
+
                     }
 
                     @Override
-                    protected void error(int error, String data) {
+                    protected void onError(int error, String data, Throwable throwable) {
                         Log.d(BuildConfig.DEBUG_TAG, "error = " + error);
                     }
                 });
@@ -91,20 +92,21 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             case R.id.btn2: {
                 HttpCacheBuilder builder = new HttpCacheBuilder().
+                        localUri("/test").
                         remoteUri("http://blog.yunarta.com/test/").
                         addParam("name", "john doe").
-                        cacheExpiry(10);
+                        cacheExpiry(60);
 
                 getSupportLoaderManager().destroyLoader(0);
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
 
                     @Override
-                    protected void nodata() {
+                    protected void onDataLoading() {
 
                     }
 
                     @Override
-                    protected void use(int error, String data, long time) {
+                    protected void onDataFinished(int error, String data, long time) {
                         String text = "";
                         text += (time - System.currentTimeMillis()) + " ms before clearing";
                         text += "\n" + data;
@@ -119,7 +121,7 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
 
                     @Override
-                    protected void error(int error, String data) {
+                    protected void onError(int error, String data, Throwable throwable) {
 
                     }
                 });
@@ -128,20 +130,24 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
             case R.id.btn3: {
                 HttpCacheBuilder builder = new HttpCacheBuilder().
-                        remoteUri("http://blog.yunarta.com/test-failed/").
+                        localUri("/test").
+//                        remoteUri("http://blog.yunarta.com/test-failed/").
+                        remoteUri("http://blog.yunarta.com/test/").
                         addParam("name", "john doe").
-                        cacheExpiry(10);
+                        cacheExpiry(60).
+                        noCache();
 
                 getSupportLoaderManager().destroyLoader(0);
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
 
                     @Override
-                    protected void nodata() {
+                    protected void onDataLoading() {
 
                     }
 
                     @Override
-                    protected void use(int error, String data, long time) {
+                    protected void onDataFinished(int error, String data, long time) {
+                        Log.d(BuildConfig.DEBUG_TAG, "onDataFinished " + time);
                         String text = "";
                         text += (time - System.currentTimeMillis()) + " ms before clearing";
                         text += "\n" + data;
@@ -156,37 +162,22 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
                     }
 
                     @Override
-                    protected boolean pf(int error, Throwable trace, String data) {
-                        StringWriter wr = new StringWriter();
-
-                        trace.printStackTrace(new PrintWriter(wr));
+                    protected void onError(int error, String data, Throwable throwable) {
                         TextView textView;
 
                         textView = (TextView) findViewById(R.id.from);
                         textView.setText("Error Test");
 
                         textView = (TextView) findViewById(R.id.text);
-                        textView.setText("error = " + error + ", data = " + data + ", trace = " + trace + "\n" + wr.toString());
-
-                        return super.pf(error, trace, data);
-                    }
-
-                    @Override
-                    protected void error(int error, String data) {
-//                        TextView textView;
-//
-//                        textView = (TextView) findViewById(R.id.from);
-//                        textView.setText("Error Test");
-//
-//                        textView = (TextView) findViewById(R.id.text);
-//                        textView.setText("error = " + error + ", data = " + data);
+                        textView.setText("error = " + error + ", data = " + data + ", throwable = " + throwable);
                     }
                 });
                 break;
             }
 
             case R.id.btn4: {
-                Toast.makeText(this, "Function not implemented", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(this, "Function not implemented", Toast.LENGTH_SHORT).show();
+                HttpCacheUtil.deleteAll(this);
                 break;
             }
         }

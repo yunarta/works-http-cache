@@ -43,6 +43,8 @@ public class HttpCache {
 
     public int status;
 
+    public boolean loadFinished = true;
+
     public void close() {
         if (!cursor.isClosed()) {
             cursor.close();

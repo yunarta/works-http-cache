@@ -55,7 +55,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
     public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
         if (mLoadFinished) return;
 
-        mLoadFinished = true;
+        mLoadFinished = data.loadFinished;
         mLoader = (HttpCacheLoader) loader;
 
         if (data.loaded) {
@@ -75,26 +75,20 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
             int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
                 case CacheErrorCode.NET_ERROR: {
-                    if (onHandleNetError(errorCode, data)) {
-                        return;
-                    }
+                    onError(errorCode & ~CacheErrorCode.NET_ERROR, data, trace);
                     break;
                 }
 
                 case CacheErrorCode.PROCESS_ERROR: {
-                    if (onHandleException(errorCode, data, trace)) {
-                        return;
-                    }
+                    onError(-1, data, trace);
                     break;
                 }
 
                 default: {
-                    onDataFinished(errorCode, data, time);
-                    return;
+                    onDataFinished(errorCode & ~CacheErrorCode.NET_ERROR, data, time);
+                    break;
                 }
             }
-
-            onError(errorCode, data);
         } finally {
             onCompleted();
         }
@@ -104,15 +98,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     protected abstract void onDataFinished(int error, String data, long time);
 
-    protected boolean onHandleException(int error, String data, Throwable trace) {
-        return false;
-    }
-
-    protected boolean onHandleNetError(int error, String data) {
-        return false;
-    }
-
-    protected abstract void onError(int error, String data);
+    protected abstract void onError(int error, String data, Throwable throwable);
 
     protected void onCompleted() {
 
