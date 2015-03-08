@@ -17,6 +17,7 @@
 package com.mobilesolutionworks.android.httpcache;
 
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -52,6 +53,10 @@ public class HttpCacheRequest implements Parcelable {
             return this;
         }
 
+        public Builder addLocalUri(String addendum) {
+            mRequest.mLocalUri += addendum;
+            return this;
+        }
 
         public Builder localUri(String localUri) {
             mRequest.mLocalUri = localUri;
