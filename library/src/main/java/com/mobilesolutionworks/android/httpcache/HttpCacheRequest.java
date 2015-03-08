@@ -17,7 +17,6 @@
 package com.mobilesolutionworks.android.httpcache;
 
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -132,6 +131,26 @@ public class HttpCacheRequest implements Parcelable {
 
         public HttpCacheRequest build() {
             return mRequest;
+        }
+
+        public Builder addParamsToLocalUri()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            Set<String> keys = mRequest.mBundle.keySet();
+            for (String key : keys)
+            {
+                String value = mRequest.mBundle.getString(key);
+                sb.append('&').append(Uri.encode(key)).append('=').append(Uri.encode(value));
+            }
+
+            if (sb.length() > 0)
+            {
+                sb.deleteCharAt(0);
+                mRequest.mLocalUri += "?" + sb.toString();
+            }
+
+            return this;
         }
     }
 
