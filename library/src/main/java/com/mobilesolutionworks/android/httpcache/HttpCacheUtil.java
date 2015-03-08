@@ -42,4 +42,11 @@ public class HttpCacheUtil {
         contentResolver.insert(uri, values);
         contentResolver.notifyChange(uri, null);
     }
+
+    public static void deleteAll(Context context) {
+        HttpCacheConfiguration configuration = HttpCacheConfiguration.configure(context);
+
+        ContentResolver contentResolver = context.getContentResolver();
+        contentResolver.delete(configuration.authority, null, null);
+    }
 }

@@ -6,7 +6,7 @@ version '2.0.6'
 
 android {
     compileSdkVersion 21
-    buildToolsVersion "21.1.0"
+    buildToolsVersion "21.1.2"
 
     def androidTargetSdkVersion = compileSdkVersion
 
@@ -42,6 +42,8 @@ dependencies {
     compile 'com.android.support:support-v4:' + androidSupportVersion
     compile project(':works-http')
     compile 'com.google.code.gson:gson:2.3'
+    compile 'com.loopj.android:android-async-http:1.4.6'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
 }
 
 def generatePom() {

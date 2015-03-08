@@ -48,6 +48,27 @@ public class HttpCacheBuilder implements Parcelable {
 
     private String mMethod = "GET";
 
+    private String mToken = "";
+
+    private boolean mKeepFresh = false;
+
+    public void setKeepFresh() {
+        mKeepFresh = true;
+    }
+
+    public boolean keepFresh() {
+        return false;
+    }
+
+    public HttpCacheBuilder token(String token) {
+        mToken = token;
+        return this;
+    }
+
+    public String token() {
+        return mToken;
+    }
+
     public HttpCacheBuilder localUri(String localUri) {
         mLocalUri = localUri;
         return this;

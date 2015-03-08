@@ -35,6 +35,8 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     private HttpCacheLoader mLoader;
 
+    private boolean mLoadFinished;
+
     public HttpCacheLoaderManager(Context context, HttpCacheBuilder builder) {
         mContext = context;
         mBuilder = builder;
@@ -51,64 +53,54 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     @Override
     public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
+        if (mLoadFinished) return;
+
+        mLoadFinished = data.loadFinished;
         mLoader = (HttpCacheLoader) loader;
+
         if (data.loaded) {
-            beforeUse(data.error, data.content, data.expiry);
+            beforeUse(data.error, data.trace, data.content, data.expiry);
         } else {
-            nodata();
+            onDataLoading();
         }
     }
 
     @Override
     public void onLoaderReset(Loader<HttpCache> loader) {
-
+        mLoadFinished = false;
     }
 
-    private void beforeUse(int errorCode, String data, long time) {
+    private void beforeUse(int errorCode, Throwable trace, String data, long time) {
         try {
-            CacheErrorCode generic = CacheErrorCode.getGeneric(errorCode);
+            int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
-                case GENERIC_NET_ERROR: {
-                    if (netf(errorCode, data)) {
-                        return;
-                    }
+                case CacheErrorCode.NET_ERROR: {
+                    onError(errorCode & ~CacheErrorCode.NET_ERROR, data, trace);
                     break;
                 }
 
-                case GENERIC_PROCESS_ERROR: {
-                    if (pf(errorCode, data)) {
-                        return;
-                    }
+                case CacheErrorCode.PROCESS_ERROR: {
+                    onError(-1, data, trace);
                     break;
                 }
 
                 default: {
-                    use(errorCode, data, time);
-                    return;
+                    onDataFinished(errorCode & ~CacheErrorCode.NET_ERROR, data, time);
+                    break;
                 }
             }
-
-            error(errorCode, data);
         } finally {
-            completed();
+            onCompleted();
         }
     }
 
-    protected boolean pf(int error, String data) {
-        return false;
-    }
+    protected abstract void onDataLoading();
 
-    protected boolean netf(int error, String data) {
-        return false;
-    }
+    protected abstract void onDataFinished(int error, String data, long time);
 
-    protected abstract void nodata();
+    protected abstract void onError(int error, String data, Throwable throwable);
 
-    protected abstract void use(int error, String data, long time);
-
-    protected abstract void error(int error, String data);
-
-    protected void completed() {
+    protected void onCompleted() {
 
     }
 

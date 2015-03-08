@@ -22,6 +22,8 @@ import android.content.Intent;
 import android.database.ContentObserver;
 import android.net.Uri;
 
+import org.apache.commons.lang3.SerializationUtils;
+
 /**
  * Created by yunarta on 24/8/14.
  */
@@ -32,7 +34,7 @@ public class HttpCacheLoaderImpl {
         boolean willDispatch(HttpCacheBuilder builder);
     }
 
-    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
+    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error", "trace", "status"};
 
     HttpCacheBuilder mBuilder;
 
@@ -72,6 +74,13 @@ public class HttpCacheLoaderImpl {
             tag.content = tag.cursor.getString(1);
             tag.expiry = tag.cursor.getLong(2);
             tag.error = tag.cursor.getInt(3);
+
+            byte[] trace = tag.cursor.getBlob(4);
+            if (trace != null) {
+                tag.trace = SerializationUtils.deserialize(trace);
+            }
+
+            tag.status = tag.cursor.getInt(5);
         }
 
         return tag;
@@ -90,21 +99,44 @@ public class HttpCacheLoaderImpl {
         boolean deliverResult = false;
 
         if (tag.loaded) {
-            if (!mTag.remote.equals(mBuilder.remoteUri()) || mTag.expiry < System.currentTimeMillis() || mTag.expiry - System.currentTimeMillis() > mBuilder.cacheExpiry() * 1000) {
-                dispatchRequest = true;
-            }
-
-            if (mTag.error == 0 || contentChanged) {
-                if ((mBuilder.isLoadCacheAnyway() && !noCache)) {
+            if (contentChanged) {
+                // content change indicating that service had returned the data
+                mTag.loadFinished = true;
+                deliverResult = true;
+                dispatchRequest = false;
+            } else {
+                // new request
+                if (mTag.error != 0 || // current cache is invalid
+                    !mTag.remote.equals(mBuilder.remoteUri()) || // remote uri changed
+                    mTag.expiry < System.currentTimeMillis() ||  // data expired
+                    (mBuilder.keepFresh() && mTag.expiry - System.currentTimeMillis() > mBuilder.cacheExpiry() * 1000) // new expiry timing
+                    ) {
                     dispatchRequest = true;
                 }
 
                 deliverResult = !dispatchRequest;
+
+                if (mTag.error == 0 && mBuilder.isLoadCacheAnyway()) {
+                    deliverResult = true;
+                    mTag.loadFinished = false;
+                }
             }
 
-            if (mTag.error != 0 && !contentChanged) {
-                dispatchRequest = true;
-            }
+
+//            if (mTag.error == 0 || contentChanged) {
+//                if ((mBuilder.isLoadCacheAnyway() && !noCache)) {
+//                    dispatchRequest = true;
+//                }
+//
+//                deliverResult = !dispatchRequest;
+//                if (mBuilder.isLoadCacheAnyway() && contentChanged) {
+//                    deliverResult = true;
+//                }
+//            }
+//
+//            if (mTag.error != 0 && !contentChanged) {
+//                dispatchRequest = true;
+//            }
         } else {
             dispatchRequest = true;
         }
@@ -119,6 +151,7 @@ public class HttpCacheLoaderImpl {
                 service.putExtra("timeout", mBuilder.timeout());
                 service.putExtra("params", mBuilder.params());
                 service.putExtra("method", mBuilder.method());
+                service.putExtra("token", mBuilder.token());
 
                 mContext.startService(service);
             }
