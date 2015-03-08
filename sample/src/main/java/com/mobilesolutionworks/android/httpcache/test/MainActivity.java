@@ -24,7 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import com.mobilesolutionworks.android.httpcache.HttpCacheBuilder;
+import com.mobilesolutionworks.android.httpcache.HttpCacheRequest;
 import com.mobilesolutionworks.android.httpcache.HttpCacheUtil;
 import com.mobilesolutionworks.android.httpcache.v4.HttpCacheLoaderManager;
 
@@ -52,11 +52,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
 
         switch (v.getId()) {
             case R.id.btn1: {
-                HttpCacheBuilder builder = new HttpCacheBuilder().
+                HttpCacheRequest builder = new HttpCacheRequest.Builder().
                         localUri("/test").
                         parseRemoteUri("http://blog.yunarta.com/test/?a=b").
                         addParam("name", "yunarta").
-                        noCache();
+                        noCache().build();
 
                 getSupportLoaderManager().destroyLoader(0);
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
@@ -91,11 +91,11 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn2: {
-                HttpCacheBuilder builder = new HttpCacheBuilder().
+                HttpCacheRequest builder = new HttpCacheRequest.Builder().
                         localUri("/test").
                         remoteUri("http://blog.yunarta.com/test/").
                         addParam("name", "john doe").
-                        cacheExpiry(60);
+                        cacheExpiry(60).build();
 
                 getSupportLoaderManager().destroyLoader(0);
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {
@@ -129,13 +129,13 @@ public class MainActivity extends FragmentActivity implements View.OnClickListen
             }
 
             case R.id.btn3: {
-                HttpCacheBuilder builder = new HttpCacheBuilder().
+                HttpCacheRequest builder = new HttpCacheRequest.Builder().
                         localUri("/test").
 //                        remoteUri("http://blog.yunarta.com/test-failed/").
                         remoteUri("http://blog.yunarta.com/test/").
                         addParam("name", "john doe").
                         cacheExpiry(60).
-                        noCache();
+                        noCache().build();
 
                 getSupportLoaderManager().destroyLoader(0);
                 getSupportLoaderManager().initLoader(0, null, new HttpCacheLoaderManager(this, builder) {

@@ -30,48 +30,132 @@ import java.util.Set;
 /**
  * Created by yunarta on 24/8/14.
  */
-public class HttpCacheBuilder implements Parcelable {
+public class HttpCacheRequest implements Parcelable {
 
-    private String mLocalUri;
+    public static class Builder {
 
-    private String mRemoteUri;
+        HttpCacheRequest mRequest;
 
-    private int mCacheExpiry = 30;
+        public Builder()
+        {
+            mRequest = new HttpCacheRequest();
+        }
 
-    private int mTimeout;
+        public Builder setKeepFresh() {
+            mRequest.mKeepFresh = true;
+            return this;
+        }
 
-    private boolean mLoadCacheAnyway = false;
 
-    private boolean mNoCache;
+        public Builder token(String token) {
+            mRequest.mToken = token;
+            return this;
+        }
 
-    private Bundle mBundle;
 
-    private String mMethod = "GET";
+        public Builder localUri(String localUri) {
+            mRequest.mLocalUri = localUri;
+            return this;
+        }
 
-    private String mToken = "";
+        public Builder parseRemoteUri(String remoteUri) {
+            Uri.Builder builder = Uri.parse(remoteUri).buildUpon();
+            Uri uri = builder.build();
 
-    private boolean mKeepFresh = false;
+            Set<String> names = mRequest.getQueryParameterNames(uri);
+            if (!names.isEmpty()) {
+                mRequest.mBundle = new Bundle();
+            }
 
-    public void setKeepFresh() {
-        mKeepFresh = true;
+            for (String name : names) {
+                mRequest.mBundle.putString(name, uri.getQueryParameter(name));
+            }
+
+            builder.query(null);
+            mRequest.mRemoteUri = builder.build().toString();
+
+            return this;
+        }
+
+        public Builder remoteUri(String remoteUri) {
+            mRequest.mRemoteUri = remoteUri;
+            return this;
+        }
+
+        public Builder cacheExpiry(int cacheExpiry) {
+            mRequest.mCacheExpiry = cacheExpiry;
+            return this;
+        }
+
+        public Builder timeout(int timeout) {
+            mRequest.mTimeout = timeout;
+            return this;
+        }
+
+        public Builder addParam(String name, String value) {
+            if (mRequest.mBundle == null) {
+                mRequest.mBundle = new Bundle();
+            }
+
+            mRequest.mBundle.putString(name, value);
+            return this;
+        }
+
+        public Builder params(Bundle bundle) {
+            if (mRequest.mBundle == null) {
+                mRequest.mBundle = new Bundle();
+            }
+
+            mRequest.mBundle.putAll(bundle);
+            return this;
+        }
+
+        public Builder noCache() {
+            mRequest.mNoCache = true;
+            return this;
+        }
+
+        public Builder postMethod() {
+            mRequest.mMethod = "POST";
+            return this;
+        }
+
+        public Builder loadCacheAnyway() {
+            mRequest.mLoadCacheAnyway = true;
+            return this;
+        }
+
+        public HttpCacheRequest build() {
+            return mRequest;
+        }
     }
+
+    protected String mLocalUri;
+
+    protected String mRemoteUri;
+
+    protected int mCacheExpiry = 30;
+
+    protected int mTimeout;
+
+    protected boolean mLoadCacheAnyway = false;
+
+    protected boolean mNoCache;
+
+    protected Bundle mBundle;
+
+    protected String mMethod = "GET";
+
+    protected String mToken = "";
+
+    protected boolean mKeepFresh = false;
 
     public boolean keepFresh() {
         return false;
     }
 
-    public HttpCacheBuilder token(String token) {
-        mToken = token;
-        return this;
-    }
-
     public String token() {
         return mToken;
-    }
-
-    public HttpCacheBuilder localUri(String localUri) {
-        mLocalUri = localUri;
-        return this;
     }
 
     public String localUri() {
@@ -83,96 +167,28 @@ public class HttpCacheBuilder implements Parcelable {
         }
     }
 
-    public HttpCacheBuilder parseRemoteUri(String remoteUri) {
-        Uri.Builder builder = Uri.parse(remoteUri).buildUpon();
-        Uri uri = builder.build();
-
-        Set<String> names = getQueryParameterNames(uri);
-        if (!names.isEmpty()) {
-            mBundle = new Bundle();
-        }
-
-        for (String name : names) {
-            mBundle.putString(name, uri.getQueryParameter(name));
-        }
-
-        builder.query(null);
-        mRemoteUri = builder.build().toString();
-
-        return this;
-    }
-
-    public HttpCacheBuilder remoteUri(String remoteUri) {
-        mRemoteUri = remoteUri;
-        return this;
-    }
-
     public String remoteUri() {
         return mRemoteUri;
-    }
-
-    public HttpCacheBuilder cacheExpiry(int cacheExpiry) {
-        mCacheExpiry = cacheExpiry;
-        return this;
     }
 
     public int cacheExpiry() {
         return mCacheExpiry;
     }
 
-    public HttpCacheBuilder timeout(int timeout) {
-        mTimeout = timeout;
-        return this;
-    }
-
     public int timeout() {
         return mTimeout;
-    }
-
-    public HttpCacheBuilder addParam(String name, String value) {
-        if (mBundle == null) {
-            mBundle = new Bundle();
-        }
-
-        mBundle.putString(name, value);
-        return this;
-    }
-
-    public HttpCacheBuilder params(Bundle bundle) {
-        if (mBundle == null) {
-            mBundle = new Bundle();
-        }
-
-        mBundle.putAll(bundle);
-        return this;
     }
 
     public Bundle params() {
         return mBundle;
     }
 
-    public HttpCacheBuilder noCache() {
-        mNoCache = true;
-        return this;
-    }
-
     public boolean isNoCache() {
         return mNoCache;
     }
 
-    public HttpCacheBuilder loadCacheAnyway() {
-        mLoadCacheAnyway = true;
-        return this;
-    }
-
     public boolean isLoadCacheAnyway() {
         return mLoadCacheAnyway;
-    }
-
-
-    public HttpCacheBuilder postMethod() {
-        mMethod = "POST";
-        return this;
     }
 
     public String method() {
@@ -259,10 +275,10 @@ public class HttpCacheBuilder implements Parcelable {
         dest.writeString(this.mMethod);
     }
 
-    public HttpCacheBuilder() {
+    public HttpCacheRequest() {
     }
 
-    private HttpCacheBuilder(Parcel in) {
+    private HttpCacheRequest(Parcel in) {
         this.mLocalUri = in.readString();
         this.mRemoteUri = in.readString();
         this.mCacheExpiry = in.readInt();
@@ -273,13 +289,16 @@ public class HttpCacheBuilder implements Parcelable {
         this.mMethod = in.readString();
     }
 
-    public static final Creator<HttpCacheBuilder> CREATOR = new Creator<HttpCacheBuilder>() {
-        public HttpCacheBuilder createFromParcel(Parcel source) {
-            return new HttpCacheBuilder(source);
+    public static final Creator<HttpCacheRequest> CREATOR = new Creator<HttpCacheRequest>()
+    {
+        public HttpCacheRequest createFromParcel(Parcel source)
+        {
+            return new HttpCacheRequest(source);
         }
 
-        public HttpCacheBuilder[] newArray(int size) {
-            return new HttpCacheBuilder[size];
+        public HttpCacheRequest[] newArray(int size)
+        {
+            return new HttpCacheRequest[size];
         }
     };
 }

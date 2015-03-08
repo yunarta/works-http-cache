@@ -31,12 +31,12 @@ public class HttpCacheLoaderImpl {
 
     public interface Callback {
 
-        boolean willDispatch(HttpCacheBuilder builder);
+        boolean willDispatch(HttpCacheRequest builder);
     }
 
     private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error", "trace", "status"};
 
-    HttpCacheBuilder mBuilder;
+    HttpCacheRequest mBuilder;
 
     Context mContext;
 
@@ -44,13 +44,15 @@ public class HttpCacheLoaderImpl {
 
     Callback mCallback;
 
-    public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder, Callback callback) {
+    public HttpCacheLoaderImpl(Context context, HttpCacheRequest builder, Callback callback)
+    {
         mContext = context;
         mBuilder = builder;
         mCallback = callback;
     }
 
-    public HttpCache onForceLoad(ContentObserver observer) {
+    public HttpCache onForceLoad(ContentObserver observer)
+    {
         HttpCache tag = new HttpCache();
         tag.local = mBuilder.localUri();
 
@@ -58,7 +60,8 @@ public class HttpCacheLoaderImpl {
 
         ContentResolver cr = mContext.getContentResolver();
         tag.cursor = cr.query(authority, PROJECTION, "local = ?", new String[]{tag.local}, null);
-        if (tag.cursor == null) {
+        if (tag.cursor == null)
+        {
             // cursor only null if provider is not set
             throw new IllegalStateException("is tag provider set properly?");
         }
@@ -67,7 +70,8 @@ public class HttpCacheLoaderImpl {
         tag.cursor.registerContentObserver(observer);
         tag.cursor.setNotificationUri(mContext.getContentResolver(), authority.buildUpon().appendEncodedPath(tag.local).build());
 
-        if (tag.cursor.moveToFirst()) {
+        if (tag.cursor.moveToFirst())
+        {
             // cache stored in database
             tag.loaded = true;
             tag.remote = tag.cursor.getString(0);

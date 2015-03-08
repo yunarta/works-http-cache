@@ -31,46 +31,55 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     private Context mContext;
 
-    private HttpCacheBuilder mBuilder;
+    private HttpCacheRequest mBuilder;
 
     private HttpCacheLoader mLoader;
 
     private boolean mLoadFinished;
 
-    public HttpCacheLoaderManager(Context context, HttpCacheBuilder builder) {
+    public HttpCacheLoaderManager(Context context, HttpCacheRequest builder)
+    {
         mContext = context;
         mBuilder = builder;
     }
 
     @Override
-    public Loader<HttpCache> onCreateLoader(int id, Bundle args) {
+    public Loader<HttpCache> onCreateLoader(int id, Bundle args)
+    {
         return onCreateLoader(mContext, mBuilder);
     }
 
-    protected Loader<HttpCache> onCreateLoader(Context context, HttpCacheBuilder builder) {
+    protected Loader<HttpCache> onCreateLoader(Context context, HttpCacheRequest builder)
+    {
         return new HttpCacheLoader(context, builder);
     }
 
     @Override
-    public void onLoadFinished(Loader<HttpCache> loader, HttpCache data) {
+    public void onLoadFinished(Loader<HttpCache> loader, HttpCache data)
+    {
         if (mLoadFinished) return;
 
         mLoadFinished = data.loadFinished;
         mLoader = (HttpCacheLoader) loader;
 
-        if (data.loaded) {
+        if (data.loaded)
+        {
             beforeUse(data.error, data.trace, data.content, data.expiry);
-        } else {
+        }
+        else
+        {
             onDataLoading();
         }
     }
 
     @Override
-    public void onLoaderReset(Loader<HttpCache> loader) {
+    public void onLoaderReset(Loader<HttpCache> loader)
+    {
         mLoadFinished = false;
     }
 
-    private void beforeUse(int errorCode, Throwable trace, String data, long time) {
+    private void beforeUse(int errorCode, Throwable trace, String data, long time)
+    {
         try {
             int generic = CacheErrorCode.getGeneric(errorCode);
             switch (generic) {
