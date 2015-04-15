@@ -16,13 +16,20 @@
 
 package com.mobilesolutionworks.android.httpcache;
 
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
 import android.net.Uri;
 
+import com.mobilesolutionworks.android.util.IntentUtils;
+
 import org.apache.commons.lang3.SerializationUtils;
+
+import java.util.List;
 
 /**
  * Created by yunarta on 24/8/14.
@@ -147,8 +154,10 @@ public class HttpCacheLoaderImpl {
 
         if (dispatchRequest) {
             if (!mCallback.willDispatch(mBuilder)) {
-                Intent service = new Intent(HttpCacheConfiguration.configure(mContext).action);
+                HttpCacheConfiguration configure = HttpCacheConfiguration.configure(mContext);
 
+                Intent service = new Intent();
+                service.setAction(configure.action);
                 service.putExtra("local", mBuilder.localUri());
                 service.putExtra("remote", mBuilder.remoteUri());
                 service.putExtra("cache", mBuilder.cacheExpiry());
@@ -157,11 +166,41 @@ public class HttpCacheLoaderImpl {
                 service.putExtra("method", mBuilder.method());
                 service.putExtra("token", mBuilder.token());
 
-                mContext.startService(service);
+                //Intent serviceIntent = new Intent(mContext,HttpCacheConfiguration.class);
+                //mContext.startService(serviceIntent);
+
+                Intent s = createExplicitFromImplicitIntent(mContext, service);
+                IntentUtils.describe("devug", s);
+                mContext.startService(s);
             }
         }
 
         return deliverResult;
+    }
+
+    public static Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
+        // Retrieve all services that can match the given intent
+        PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> resolveInfo = pm.queryIntentServices(implicitIntent, 0);
+
+        // Make sure only one match was found
+        if (resolveInfo == null || resolveInfo.size() != 1) {
+            return null;
+        }
+
+        // Get component info and create ComponentName
+        ResolveInfo serviceInfo = resolveInfo.get(0);
+        String packageName = serviceInfo.serviceInfo.packageName;
+        String className = serviceInfo.serviceInfo.name;
+        ComponentName component = new ComponentName(packageName, className);
+
+        // Create a new intent. Use the old one for extras and such reuse
+        Intent explicitIntent = new Intent(implicitIntent);
+
+        // Set the component to be explicit
+        explicitIntent.setComponent(component);
+
+        return explicitIntent;
     }
 
     public void onStopLoading() {
