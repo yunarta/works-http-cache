@@ -39,7 +39,7 @@ public abstract class HttpCacheLoaderManager implements LoaderManager.LoaderCall
 
     public HttpCacheLoaderManager(Context context, HttpCacheRequest builder)
     {
-        mContext = context;
+        mContext = context.getApplicationContext();
         mBuilder = builder;
     }
 
