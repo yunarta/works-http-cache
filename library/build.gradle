@@ -38,7 +38,7 @@ dependencies {
     compile 'com.android.support:support-v4:22.2.1'
     compile 'com.google.code.gson:gson:2.3.1'
     compile 'com.loopj.android:android-async-http:1.4.8'
-    compile 'org.apache.commons:commons-lang3:3.4'
-    compile 'com.mobilesolutionworks:works-util:1.0.4'
+    compile 'org.apache.commons:commons-lang3:3.3.2'
+    compile 'com.mobilesolutionworks:works-util:1.0.5@aar'
     compile project(':works-http')
 }
