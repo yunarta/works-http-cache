@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'signing'
 
 group 'com.mobilesolutionworks'
-version '2.0.6'
+version '2.1.0'
 
 android {
     compileSdkVersion 21
@@ -20,7 +20,7 @@ android {
         minSdkVersion 8
         targetSdkVersion androidTargetSdkVersion
         versionCode 1
-        versionName "2.0.6"
+        versionName "2.1.0"
     }
 
     buildTypes {
