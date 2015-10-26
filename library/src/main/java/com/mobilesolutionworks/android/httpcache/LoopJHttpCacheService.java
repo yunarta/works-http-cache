@@ -10,8 +10,9 @@ import com.loopj.android.http.RequestParams;
 import com.loopj.android.http.TextHttpResponseHandler;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.apache.http.Header;
-import org.apache.http.client.HttpResponseException;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.client.HttpResponseException;
 
 /**
  * Created by yunarta on 29/10/14.
