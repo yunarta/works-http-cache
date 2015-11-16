@@ -27,13 +27,15 @@ import com.mobilesolutionworks.android.http.WorksHttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import cz.msebera.android.httpclient.params.BasicHttpParams;
+
 
 /**
  * Created by yunarta on 24/8/14.
@@ -103,7 +105,7 @@ public class WorksHttpCacheService extends HttpCacheService {
             super.onPreExecute(request, httpRequest);
             WorksHttpCacheService.this.onPreExecute(request, httpRequest);
 
-            HttpParams params = new BasicHttpParams();
+            HttpParams params = (HttpParams) new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, mTimeout);
             HttpConnectionParams.setSoTimeout(params, mTimeout);
         }

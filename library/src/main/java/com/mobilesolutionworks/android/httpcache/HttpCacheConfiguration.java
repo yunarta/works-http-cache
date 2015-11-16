@@ -34,6 +34,7 @@ class HttpCacheConfiguration {
             INSTANCE = new HttpCacheConfiguration(
                     metaData.getString("works.httpcache.service.get"),
                     metaData.getString("works.httpcache.service.clear"),
+                    metaData.getString("works.httpcache.service.class"),
                     new Uri.Builder().scheme("content").authority(metaData.getString("works.httpcache.authority")).build()
             );
         }
@@ -47,9 +48,12 @@ class HttpCacheConfiguration {
 
     public final String clearCookie;
 
-    protected HttpCacheConfiguration(String action, String clearCookie, Uri authority) {
+    public final String className;
+
+    protected HttpCacheConfiguration(String action, String clearCookie,String className, Uri authority) {
         this.action = action;
         this.clearCookie = clearCookie;
+        this.className = className;
         this.authority = authority;
     }
 }

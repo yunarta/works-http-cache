@@ -23,11 +23,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 
-import org.apache.http.client.CookieStore;
-import org.apache.http.impl.client.BasicCookieStore;
-
 import java.util.HashSet;
 import java.util.Set;
+
+import cz.msebera.android.httpclient.client.CookieStore;
+import cz.msebera.android.httpclient.impl.client.BasicCookieStore;
 
 /**
  * Created by yunarta on 29/10/14.
