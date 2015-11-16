@@ -16,90 +16,52 @@
 
 package com.mobilesolutionworks.android.httpcache;
 
-import android.app.IntentService;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
+
 import com.mobilesolutionworks.android.http.WorksHttpFutureTask;
 import com.mobilesolutionworks.android.http.WorksHttpRequest;
+
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import cz.msebera.android.httpclient.params.BasicHttpParams;
+
 
 /**
  * Created by yunarta on 24/8/14.
  */
-public class WorksHttpCacheService extends IntentService {
-
-    private Handler mHandler;
-
-    private Set<String> mQueues;
+public class WorksHttpCacheService extends HttpCacheService {
 
     private ExecutorService mExecutors;
-
-    private HttpCacheConfiguration mConfiguration;
-
-    public WorksHttpCacheService() {
-        super("tag-service");
-    }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        mHandler = new Handler();
-
-        mQueues = new HashSet<String>();
         mExecutors = Executors.newCachedThreadPool();
-
-        mConfiguration = HttpCacheConfiguration.configure(this);
     }
 
     @Override
-    protected void onHandleIntent(Intent intent) {
-        if (intent != null) {
-            String action = intent.getAction();
-            if (mConfiguration.action.equals(action)) {
-                refreshData(intent);
-            }
-        }
-    }
-
-    protected void refreshData(Intent intent) {
-        // rebuild into hierarchical uri
-        String local = intent.getStringExtra("local");
-        String remote = intent.getStringExtra("remote");
-
-        if (mQueues.contains(local)) {
-            return;
-        }
-
-        mQueues.add(local);
-
-        String _method = intent.getStringExtra("method");
-        WorksHttpRequest.Method method = WorksHttpRequest.Method.GET;
-        if ("POST".equals(_method)) {
-            method = WorksHttpRequest.Method.POST;
+    protected void executeRequest(String local, String remote, String method, Bundle params, int cache, int timeout) {
+        WorksHttpRequest.Method _method = WorksHttpRequest.Method.GET;
+        if ("POST".equals(method)) {
+            _method = WorksHttpRequest.Method.POST;
         }
 
         WorksHttpRequest config = new WorksHttpRequest();
-        config.method = method;
+        config.method = _method;
         config.url = remote;
 
-        Bundle params = intent.getBundleExtra("params");
         if (params != null) {
             for (String key : params.keySet()) {
                 String value = params.getString(key);
@@ -108,19 +70,6 @@ public class WorksHttpCacheService extends IntentService {
                 }
             }
         }
-
-        int cache = intent.getIntExtra("cache", 0);
-        if (cache == 0) {
-            cache = 60;
-        }
-
-        cache *= 1000;
-
-        int timeout = intent.getIntExtra("timeout", 0);
-        if (timeout == 0) {
-            timeout = 10;
-        }
-        timeout *= 1000;
 
         WorksHttpFutureTask<String> task = getSaveTask(local, cache, timeout);
         task.execute(config, mHandler, mExecutors);
@@ -156,7 +105,7 @@ public class WorksHttpCacheService extends IntentService {
             super.onPreExecute(request, httpRequest);
             WorksHttpCacheService.this.onPreExecute(request, httpRequest);
 
-            HttpParams params = new BasicHttpParams();
+            HttpParams params = (HttpParams) new BasicHttpParams();
             HttpConnectionParams.setConnectionTimeout(params, mTimeout);
             HttpConnectionParams.setSoTimeout(params, mTimeout);
         }
@@ -174,11 +123,10 @@ public class WorksHttpCacheService extends IntentService {
             values.put("remote", request.url);
             values.put("data", data);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.OK.value());
+            values.put("error", CacheErrorCode.OK);
 
-            mQueues.remove(mLocalUri);
 
-            insert(values);
+            insert(values, mLocalUri);
         }
 
         @Override
@@ -189,12 +137,11 @@ public class WorksHttpCacheService extends IntentService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.createException(exception).value());
+            values.put("error", CacheErrorCode.PROCESS_ERROR);
 
             onReportError(request, exception);
-            mQueues.remove(mLocalUri);
 
-            insert(values);
+            insert(values, mLocalUri);
         }
 
         @Override
@@ -205,11 +152,9 @@ public class WorksHttpCacheService extends IntentService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.createNet(statusCode).value());
+            values.put("error", CacheErrorCode.createNet(statusCode));
 
-            mQueues.remove(mLocalUri);
-
-            insert(values);
+            insert(values, mLocalUri);
         }
 
         @Override
@@ -220,21 +165,12 @@ public class WorksHttpCacheService extends IntentService {
             values.put("local", mLocalUri);
             values.put("remote", request.url);
             values.put("time", System.currentTimeMillis() + mCache);
-            values.put("error", CacheErrorCode.CANCELED.value());
+            values.put("error", CacheErrorCode.CANCELED);
 
-            mQueues.remove(mLocalUri);
-
-            insert(values);
+            insert(values, mLocalUri);
         }
-
-        private void insert(ContentValues values) {
-            Uri uri = Uri.withAppendedPath(mConfiguration.authority, mLocalUri);
-
-            getContentResolver().insert(uri, values);
-            getContentResolver().notifyChange(uri, null);
-        }
-
     }
+
 
     protected WorksHttpFutureTask<String> getSaveTask(String local, int cache, int timeout) {
         return new QueryAndSaveTask(this, local, cache, timeout);

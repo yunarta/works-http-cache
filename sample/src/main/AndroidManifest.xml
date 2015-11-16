@@ -21,7 +21,7 @@
         </activity>
 
         <service
-            android:name="com.mobilesolutionworks.android.httpcache.WorksHttpCacheService"
+            android:name="com.mobilesolutionworks.android.httpcache.LoopJHttpCacheService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.mobilesolutionworks.httpcache.action.GET_TAG" />
@@ -36,6 +36,12 @@
         <meta-data
             android:name="works.httpcache.service"
             android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
+        <meta-data
+            android:name="works.httpcache.service.get"
+            android:value="com.mobilesolutionworks.httpcache.action.GET_TAG" />
+        <meta-data
+            android:name="works.httpcache.service.clear"
+            android:value="com.mobilesolutionworks.httpcache.action.CLEAR_COOKIE" />
         <meta-data
             android:name="works.httpcache.authority"
             android:value="com.mobilesolutionworks.httptag" />

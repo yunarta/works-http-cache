@@ -30,7 +30,7 @@ public class HttpCacheLoader extends Loader<HttpCache> implements HttpCacheLoade
 
     HttpCache mTag;
 
-    public HttpCacheLoader(Context context, HttpCacheBuilder builder) {
+    public HttpCacheLoader(Context context, HttpCacheRequest builder) {
         super(context);
 
         mImplementation = new HttpCacheLoaderImpl(context, builder, this);
@@ -83,7 +83,7 @@ public class HttpCacheLoader extends Loader<HttpCache> implements HttpCacheLoade
     }
 
     @Override
-    public boolean willDispatch(HttpCacheBuilder builder) {
+    public boolean willDispatch(HttpCacheRequest builder) {
         return false;
     }
 }

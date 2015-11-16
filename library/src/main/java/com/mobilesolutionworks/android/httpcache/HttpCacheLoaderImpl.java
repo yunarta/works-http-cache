@@ -16,11 +16,20 @@
 
 package com.mobilesolutionworks.android.httpcache;
 
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.database.ContentObserver;
 import android.net.Uri;
+
+import com.mobilesolutionworks.android.util.IntentUtils;
+
+import org.apache.commons.lang3.SerializationUtils;
+
+import java.util.List;
 
 /**
  * Created by yunarta on 24/8/14.
@@ -29,12 +38,12 @@ public class HttpCacheLoaderImpl {
 
     public interface Callback {
 
-        boolean willDispatch(HttpCacheBuilder builder);
+        boolean willDispatch(HttpCacheRequest builder);
     }
 
-    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error"};
+    private static final String[] PROJECTION = new String[]{"remote", "data", "time", "error", "trace", "status"};
 
-    HttpCacheBuilder mBuilder;
+    HttpCacheRequest mBuilder;
 
     Context mContext;
 
@@ -42,13 +51,15 @@ public class HttpCacheLoaderImpl {
 
     Callback mCallback;
 
-    public HttpCacheLoaderImpl(Context context, HttpCacheBuilder builder, Callback callback) {
+    public HttpCacheLoaderImpl(Context context, HttpCacheRequest builder, Callback callback)
+    {
         mContext = context;
         mBuilder = builder;
         mCallback = callback;
     }
 
-    public HttpCache onForceLoad(ContentObserver observer) {
+    public HttpCache onForceLoad(ContentObserver observer)
+    {
         HttpCache tag = new HttpCache();
         tag.local = mBuilder.localUri();
 
@@ -56,7 +67,8 @@ public class HttpCacheLoaderImpl {
 
         ContentResolver cr = mContext.getContentResolver();
         tag.cursor = cr.query(authority, PROJECTION, "local = ?", new String[]{tag.local}, null);
-        if (tag.cursor == null) {
+        if (tag.cursor == null)
+        {
             // cursor only null if provider is not set
             throw new IllegalStateException("is tag provider set properly?");
         }
@@ -65,13 +77,21 @@ public class HttpCacheLoaderImpl {
         tag.cursor.registerContentObserver(observer);
         tag.cursor.setNotificationUri(mContext.getContentResolver(), authority.buildUpon().appendEncodedPath(tag.local).build());
 
-        if (tag.cursor.moveToFirst()) {
+        if (tag.cursor.moveToFirst())
+        {
             // cache stored in database
             tag.loaded = true;
             tag.remote = tag.cursor.getString(0);
             tag.content = tag.cursor.getString(1);
             tag.expiry = tag.cursor.getLong(2);
             tag.error = tag.cursor.getInt(3);
+
+            byte[] trace = tag.cursor.getBlob(4);
+            if (trace != null) {
+                tag.trace = SerializationUtils.deserialize(trace);
+            }
+
+            tag.status = tag.cursor.getInt(5);
         }
 
         return tag;
@@ -90,41 +110,97 @@ public class HttpCacheLoaderImpl {
         boolean deliverResult = false;
 
         if (tag.loaded) {
-            if (!mTag.remote.equals(mBuilder.remoteUri()) || mTag.expiry < System.currentTimeMillis() || mTag.expiry - System.currentTimeMillis() > mBuilder.cacheExpiry() * 1000) {
-                dispatchRequest = true;
-            }
-
-            if (mTag.error == 0 || contentChanged) {
-                if ((mBuilder.isLoadCacheAnyway() && !noCache)) {
+            if (contentChanged) {
+                // content change indicating that service had returned the data
+                mTag.loadFinished = true;
+                deliverResult = true;
+                dispatchRequest = false;
+            } else {
+                // new request
+                if (mTag.error != 0 || // current cache is invalid
+                    !mTag.remote.equals(mBuilder.remoteUri()) || // remote uri changed
+                    mTag.expiry < System.currentTimeMillis() ||  // data expired
+                    (mBuilder.keepFresh() && mTag.expiry - System.currentTimeMillis() > mBuilder.cacheExpiry() * 1000) // new expiry timing
+                    ) {
                     dispatchRequest = true;
                 }
 
                 deliverResult = !dispatchRequest;
+
+                if (mTag.error == 0 && mBuilder.isLoadCacheAnyway()) {
+                    deliverResult = true;
+                    mTag.loadFinished = false;
+                }
             }
 
-            if (mTag.error != 0 && !contentChanged) {
-                dispatchRequest = true;
-            }
+
+//            if (mTag.error == 0 || contentChanged) {
+//                if ((mBuilder.isLoadCacheAnyway() && !noCache)) {
+//                    dispatchRequest = true;
+//                }
+//
+//                deliverResult = !dispatchRequest;
+//                if (mBuilder.isLoadCacheAnyway() && contentChanged) {
+//                    deliverResult = true;
+//                }
+//            }
+//
+//            if (mTag.error != 0 && !contentChanged) {
+//                dispatchRequest = true;
+//            }
         } else {
             dispatchRequest = true;
         }
 
         if (dispatchRequest) {
             if (!mCallback.willDispatch(mBuilder)) {
-                Intent service = new Intent(HttpCacheConfiguration.configure(mContext).action);
+                HttpCacheConfiguration configure = HttpCacheConfiguration.configure(mContext);
 
+                Intent service = new Intent();
+                service.setAction(configure.action);
                 service.putExtra("local", mBuilder.localUri());
                 service.putExtra("remote", mBuilder.remoteUri());
                 service.putExtra("cache", mBuilder.cacheExpiry());
                 service.putExtra("timeout", mBuilder.timeout());
                 service.putExtra("params", mBuilder.params());
                 service.putExtra("method", mBuilder.method());
+                service.putExtra("token", mBuilder.token());
 
-                mContext.startService(service);
+                //Intent serviceIntent = new Intent(mContext,HttpCacheConfiguration.class);
+                //mContext.startService(serviceIntent);
+
+                Intent s = createExplicitFromImplicitIntent(mContext, service);
+                IntentUtils.describe("devug", s);
+                mContext.startService(s);
             }
         }
 
         return deliverResult;
+    }
+
+    public static Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
+        // Retrieve all services that can match the given intent
+        PackageManager pm = context.getPackageManager();
+        List<ResolveInfo> resolveInfo = pm.queryIntentServices(implicitIntent, 0);
+
+        // Make sure only one match was found
+        if (resolveInfo == null || resolveInfo.size() != 1) {
+            return null;
+        }
+
+        // Get component info and create ComponentName
+        ResolveInfo serviceInfo = resolveInfo.get(0);
+        String packageName = serviceInfo.serviceInfo.packageName;
+        String className = serviceInfo.serviceInfo.name;
+        ComponentName component = new ComponentName(packageName, className);
+
+        // Create a new intent. Use the old one for extras and such reuse
+        Intent explicitIntent = new Intent(implicitIntent);
+
+        // Set the component to be explicit
+        explicitIntent.setComponent(component);
+
+        return explicitIntent;
     }
 
     public void onStopLoading() {
