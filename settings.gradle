@@ -1,4 +1,26 @@
-include ':library'
-include ':sample'
+def moduleName = "works-http-cache"
+def moduleRoot = rootProject.projectDir
+def loadSmallApp = true
 
-project(":library").name = "works-http-cache"
+def modulesFile = new File(rootProject.projectDir, "modules.json")
+if (modulesFile.exists()) {
+    def json = new groovy.json.JsonSlurper()
+    def configuration = json.parse(modulesFile)
+
+    configuration.modules.each {
+        module ->
+            if (module.name.equals(moduleName)) {
+                moduleRoot = new File(rootProject.projectDir, module.path)
+                loadSmallApp = module.smallapp == null || module.smallapp
+            }
+    }
+}
+
+include ':works-http-cache'
+project(':works-http-cache').projectDir = new File(moduleRoot, 'library')
+
+
+if (loadSmallApp) {
+    include ':works-http-cache-sample'
+    project(':works-http-cache-sample').projectDir = new File(moduleRoot, 'sample')
+}
